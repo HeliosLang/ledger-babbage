@@ -1,0 +1,54 @@
+{
+    "name": "@helios-lang/ledger-babbage",
+    "version": "0.1.0",
+    "description": "Cardano ledger types for Babbage era",
+    "type": "module",
+    "main": "src/index.js",
+    "types": "types/index.d.ts",
+    "scripts": {
+        "build": "npm run prettify && npm run build:types && npm run test:suite",
+        "build:types": "npx tsc -p jsconfig.json --noEmit false --emitDeclarationOnly",
+        "prettify": "npx prettier . --write",
+        "test": "npm run test:pretty && npm run test:types && npm run test:suite",
+        "test:pretty": "npx prettier . --check",
+        "test:suite": "node --test  --experimental-test-coverage",
+        "test:types": "npm run build:types"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/HeliosLang/ledger-babbage.git"
+    },
+    "keywords": [
+        "Cardano",
+        "blockchain",
+        "ledger",
+        "smart",
+        "contracts"
+    ],
+    "author": "Christian Schmitz",
+    "license": "BSD-3-Clause",
+    "bugs": {
+        "url": "https://github.com/HeliosLang/ledger-babbage/issues"
+    },
+    "homepage": "https://github.com/HeliosLang/ledger-babbage#readme",
+    "prettier": {
+        "trailingComma": "none",
+        "tabWidth": 4,
+        "semi": false,
+        "singleQuote": false
+    },
+    "devDependencies": {
+        "@types/node": "^22.5.0",
+        "prettier": "^3.3.3",
+        "typescript": "^5.5.4"
+    },
+    "dependencies": {
+        "@helios-lang/cbor": "^0.1.21",
+        "@helios-lang/codec-utils": "^0.1.32",
+        "@helios-lang/crypto": "^0.1.9",
+        "@helios-lang/ledger-allegra": "^0.1.0",
+        "@helios-lang/ledger-shelley": "^0.1.1",
+        "@helios-lang/type-utils": "^0.1.21",
+        "@helios-lang/uplc": "^0.1.37"
+    }
+}
