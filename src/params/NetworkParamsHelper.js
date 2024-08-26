@@ -34,7 +34,7 @@ export class NetworkParamsHelper {
      * @returns {NetworkParamsHelper}
      */
     static default() {
-        return new NetworkParamsHelper(DEFAULT_NETWORK_PARAMS)
+        return new NetworkParamsHelper(DEFAULT_NETWORK_PARAMS())
     }
 
     /**
@@ -44,7 +44,7 @@ export class NetworkParamsHelper {
      */
     static new(params = None) {
         if (!params) {
-            return new NetworkParamsHelper(DEFAULT_NETWORK_PARAMS)
+            return new NetworkParamsHelper(DEFAULT_NETWORK_PARAMS())
         } else if (params instanceof NetworkParamsHelper) {
             return params
         } else {
