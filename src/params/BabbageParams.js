@@ -8,10 +8,6 @@ export {}
 /**
  * @typedef {{
  *   collateralPercentage: number
- *   costModels: {
- *     PlutusScriptV1: CostModelParamsV1
- *     PlutusScriptV2: CostModelParamsV2
- *   }
  *   executionUnitPrices: {
  *     priceMemory: number
  *     priceSteps: number
@@ -44,5 +40,14 @@ export {}
  *   txFeeFixed: number
  *   txFeePerByte: number
  *   utxoCostPerByte: number
+ * }} CommonBabbageConwayParams
+ */
+
+/**
+ * @typedef {CommonBabbageConwayParams & {
+ *   costModels: {
+ *     PlutusScriptV1: CostModelParamsV1
+ *     PlutusScriptV2: CostModelParamsV2
+ *   }
  * }} BabbageParams
  */
