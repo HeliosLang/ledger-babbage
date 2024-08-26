@@ -1,6 +1,6 @@
 {
     "name": "@helios-lang/ledger-babbage",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "Cardano ledger types for Babbage era",
     "type": "module",
     "main": "src/index.js",
