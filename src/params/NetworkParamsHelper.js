@@ -11,23 +11,24 @@ import { DEFAULT_NETWORK_PARAMS } from "./NetworkParams.js"
  * Wrapper for the raw JSON containing all the current network parameters.
  *
  * NetworkParamsHelper is needed to be able to calculate script budgets and perform transaction building checks.
+ * @template {NetworkParams} T
  */
 export class NetworkParamsHelper {
     /**
      * @readonly
-     * @type {NetworkParams}
+     * @type {T}
      */
     params
 
     /**
-     * @param {NetworkParams} params
+     * @param {T} params
      */
     constructor(params) {
         this.params = params
     }
 
     /**
-     * @returns {NetworkParamsHelper}
+     * @returns {NetworkParamsHelper<NetworkParams>}
      */
     static default() {
         return new NetworkParamsHelper(DEFAULT_NETWORK_PARAMS())
