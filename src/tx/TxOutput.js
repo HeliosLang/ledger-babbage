@@ -31,7 +31,7 @@ import { TxOutputDatum } from "./TxOutputDatum.js"
  * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("../money/index.js").ValueLike} ValueLike
- * @typedef {import("../params/index.js").NetworkParamsLike} NetworkParamsLike
+ * @typedef {import("../params/index.js").NetworkParams} NetworkParams
  * @typedef {import("./Address.js").AddressLike} AddressLike
  * @typedef {import("./TxOutputDatum.js").TxOutputDatumKind} TxOutputDatumKind
 
@@ -328,11 +328,11 @@ export class TxOutput {
 
     /**
      * Each UTxO must contain some minimum quantity of lovelace to avoid that the blockchain is used for data storage.
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      * @returns {bigint}
      */
     calcDeposit(params) {
-        const helper = NetworkParamsHelper.new(params)
+        const helper = new NetworkParamsHelper(params)
 
         const lovelacePerByte = helper.lovelacePerUTXOByte
 
@@ -346,12 +346,10 @@ export class TxOutput {
      * The network requires this to avoid the creation of unusable dust UTxOs.
      *
      * Optionally an update function can be specified that allows mutating the datum of the `TxOutput` to account for an increase of the lovelace quantity contained in the value.
-     * @param {NetworkParamsHelper} params
+     * @param {NetworkParams} params
      * @param {Option<(output: TxOutput) => void>} updater
      */
     correctLovelace(params, updater = null) {
-        const helper = NetworkParamsHelper.new(params)
-
         let minLovelace = this.calcDeposit(params)
 
         while (this.value.lovelace < minLovelace) {

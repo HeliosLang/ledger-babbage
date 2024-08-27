@@ -31,14 +31,13 @@ import { TxInput } from "./TxInput.js"
 import { TxOutput } from "./TxOutput.js"
 import { TxOutputId } from "./TxOutputId.js"
 import { TxRedeemer } from "./TxRedeemer.js"
-import { ScriptPurpose } from "./ScriptPurpose.js"
 
 /**
  * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("../hashes/index.js").Hash} Hash
- * @typedef {import("../params/index.js").NetworkParamsLike} NetworkParamsLike
+ * @typedef {import("../params/index.js").NetworkParams} NetworkParams
  * @typedef {import("./TxInfo.js").TxInfo} TxInfo
  */
 
@@ -355,11 +354,11 @@ export class TxBody {
     }
 
     /**
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      * @returns {TimeRange}
      */
     getValidityTimeRange(params) {
-        const helper = NetworkParamsHelper.new(params)
+        const helper = new NetworkParamsHelper(params)
 
         const start = this.firstValidSlot
             ? helper.slotToTime(this.firstValidSlot)
@@ -543,7 +542,7 @@ export class TxBody {
 
     /**
      * Returns the on-chain Tx representation
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      * @param {TxRedeemer[]} redeemers
      * @param {UplcData[]} datums
      * @param {TxId} txId

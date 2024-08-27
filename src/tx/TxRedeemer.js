@@ -13,7 +13,7 @@ import { NetworkParamsHelper } from "../params/NetworkParamsHelper.js"
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("@helios-lang/uplc").Cost} Cost
- * @typedef {import("../params/index.js").NetworkParamsLike} NetworkParamsLike
+ * @typedef {import("../params/index.js").NetworkParams} NetworkParams
  */
 
 /**
@@ -186,11 +186,11 @@ export class TxRedeemer {
     }
 
     /**
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      * @returns {bigint}
      */
     calcExFee(params) {
-        const helper = NetworkParamsHelper.new(params)
+        const helper = new NetworkParamsHelper(params)
 
         const { mem, cpu } = this.props.cost
         const [memFee, cpuFee] = helper.exFeeParams

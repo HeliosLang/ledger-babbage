@@ -2,7 +2,7 @@ import { deepEqual, strictEqual, throws } from "node:assert"
 import { describe, it } from "node:test"
 import { bytesToHex, hexToBytes } from "@helios-lang/codec-utils"
 import { Value } from "../money/index.js"
-import { NetworkParamsHelper } from "../params/index.js"
+import { DEFAULT_NETWORK_PARAMS } from "../params/index.js"
 import { Address } from "./Address.js"
 import { Tx } from "./Tx.js"
 import { TxOutput } from "./TxOutput.js"
@@ -25,7 +25,7 @@ describe(`basic ${Tx.name}`, () => {
     const unsigned = Tx.fromCbor(unsignedHex)
     const signed = Tx.fromCbor(signedHex)
 
-    const params = NetworkParamsHelper.default()
+    const params = DEFAULT_NETWORK_PARAMS()
 
     it("unsigned tx contains a single input", () => {
         strictEqual(unsigned.body.inputs.length, 1)
@@ -113,7 +113,7 @@ const testVector = [
 ]
 
 describe("Tx.calcSize()", () => {
-    const params = NetworkParamsHelper.default()
+    const params = DEFAULT_NETWORK_PARAMS()
 
     testVector.forEach((t, i) => {
         const tx = Tx.fromCbor(t.txHex)

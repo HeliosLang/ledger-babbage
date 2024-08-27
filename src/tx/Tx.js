@@ -35,7 +35,7 @@ import { ScriptContextV2 } from "./ScriptContextV2.js"
 /**
  * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
- * @typedef {import("../params/index.js").NetworkParamsLike} NetworkParamsLike
+ * @typedef {import("../params/index.js").NetworkParams} NetworkParams
  */
 
 /**
@@ -162,28 +162,28 @@ export class Tx {
     }
 
     /**
-     * @param {NetworkParamsHelper} networkParams
+     * @param {NetworkParams} params
      * @param {boolean} recalcMinBaseFee
      * @returns {bigint} - a quantity of lovelace
      */
-    calcMinCollateral(networkParams, recalcMinBaseFee = false) {
-        const fee = recalcMinBaseFee
-            ? this.calcMinFee(networkParams)
-            : this.body.fee
+    calcMinCollateral(params, recalcMinBaseFee = false) {
+        const fee = recalcMinBaseFee ? this.calcMinFee(params) : this.body.fee
+
+        const helper = new NetworkParamsHelper(params)
 
         // integer division that rounds up
         const minCollateral =
-            (fee * BigInt(networkParams.minCollateralPct) + 100n) / 100n
+            (fee * BigInt(helper.minCollateralPct) + 100n) / 100n
 
         return minCollateral
     }
 
     /**
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      * @returns {bigint} - a quantity of lovelace
      */
     calcMinFee(params) {
-        const helper = NetworkParamsHelper.new(params)
+        const helper = new NetworkParamsHelper(params)
 
         const [a, b] = helper.txFeeParams
 
@@ -323,7 +323,7 @@ export class Tx {
      *   * all necessary signatures are included (must done after tx has been signed)
      *   * validity time range, which can only be checked upon submission
      *
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      * @param {boolean} strict - can be left when trying to inspect general transactions, the TxBuilder should however always set strict=true
      */
     validate(params, strict = false) {
@@ -403,10 +403,10 @@ export class Tx {
      * Throws an error if there isn't enough collateral
      * Also throws an error if the script doesn't require collateral, but collateral was actually included
      * @private
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      */
     validateCollateral(params) {
-        const helper = NetworkParamsHelper.new(params)
+        const helper = new NetworkParamsHelper(params)
 
         if (this.body.collateral.length > helper.maxCollateralInputs) {
             throw new Error("too many collateral inputs")
@@ -459,10 +459,10 @@ export class Tx {
      * Validate that value is conserved, minus what is burned and plus what is minted
      * Throws an error if value isn't conserved
      * @private
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      */
     validateConservation(params) {
-        const helper = NetworkParamsHelper.new(params)
+        const helper = new NetworkParamsHelper(params)
 
         const stakeAddrDeposit = new Value(helper.stakeAddressDeposit)
         let v = new Value(0n)
@@ -497,12 +497,10 @@ export class Tx {
      * Final check that fee is big enough
      * Throws an error if not
      * @private
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      */
     validateFee(params) {
-        const helper = NetworkParamsHelper.new(params)
-
-        const minFee = this.calcMinFee(helper)
+        const minFee = this.calcMinFee(params)
 
         if (minFee > this.body.fee) {
             throw new Error(
@@ -570,14 +568,12 @@ export class Tx {
      * Checks that each output contains enough lovelace,
      *   and that the contained assets are correctly sorted
      * @private
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      * @param {boolean} strict
      */
     validateOutputs(params, strict) {
-        const helper = NetworkParamsHelper.new(params)
-
         this.body.outputs.forEach((output) => {
-            const minLovelace = output.calcDeposit(helper)
+            const minLovelace = output.calcDeposit(params)
 
             if (minLovelace > output.value.lovelace) {
                 throw new Error(
@@ -593,13 +589,11 @@ export class Tx {
 
     /**
      * @private
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      */
     validateRedeemersExBudget(params) {
-        const helper = NetworkParamsHelper.new(params)
-
         const txInfo = this.body.toTxInfo(
-            helper,
+            params,
             this.witnesses.redeemers,
             this.witnesses.datums,
             this.id()
@@ -692,7 +686,7 @@ export class Tx {
     /**
      * Throws an error if the script data hash is incorrect
      * @private
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      */
     validateScriptDataHash(params) {
         if (this.witnesses.redeemers.length > 0) {
@@ -766,10 +760,10 @@ export class Tx {
     /**
      * Throws error if tx is too big
      * @private
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      */
     validateSize(params) {
-        const helper = NetworkParamsHelper.new(params)
+        const helper = new NetworkParamsHelper(params)
 
         if (this.calcSize() > helper.maxTxSize) {
             // TODO: should we also use the fee calculation size instead of the real size for this? (i.e. 1 byte difference)
@@ -780,11 +774,11 @@ export class Tx {
     /**
      * Throws error if execution budget is exceeded
      * @private
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      * @param {boolean} verbose - if true -> warn if ex budget >= 50% max budget
      */
     validateTotalExBudget(params, verbose = false) {
-        const helper = NetworkParamsHelper.new(params)
+        const helper = new NetworkParamsHelper(params)
 
         let totalMem = 0n
         let totalCpu = 0n
@@ -835,13 +829,13 @@ export class Tx {
 }
 
 /**
- * @param {NetworkParamsLike} params
+ * @param {NetworkParams} params
  * @param {UplcData[]} datums
  * @param {TxRedeemer[]} redeemers
  * @returns {number[]}
  */
 export function calcScriptDataHash(params, datums, redeemers) {
-    const helper = NetworkParamsHelper.new(params)
+    const helper = new NetworkParamsHelper(params)
 
     if (redeemers.length == 0) {
         throw new Error(
@@ -856,15 +850,13 @@ export function calcScriptDataHash(params, datums, redeemers) {
     }
 
     // language view encodings?
-    const sortedCostParams = helper.sortedV2CostParams
+    const costParams = helper.costModelParamsV2
 
     bytes = bytes.concat(
         encodeMap([
             [
                 encodeInt(1),
-                encodeDefList(
-                    sortedCostParams.map((cp) => encodeInt(BigInt(cp)))
-                )
+                encodeDefList(costParams.map((cp) => encodeInt(BigInt(cp))))
             ]
         ])
     )

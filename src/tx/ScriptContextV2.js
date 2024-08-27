@@ -14,7 +14,6 @@ import { TxId } from "./TxId.js"
 /**
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
- * @typedef {import("../params/index.js").NetworkParamsLike} NetworkParamsLike
  * @typedef {import("./TxInfo.js").TxInfo} TxInfo
  */
 

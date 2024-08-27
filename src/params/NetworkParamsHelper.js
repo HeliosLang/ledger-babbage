@@ -1,14 +1,10 @@
 import { toInt } from "@helios-lang/codec-utils"
-import { None, expectSome } from "@helios-lang/type-utils"
+import { expectSome } from "@helios-lang/type-utils"
 import { DEFAULT_NETWORK_PARAMS } from "./NetworkParams.js"
 
 /**
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("./NetworkParams.js").NetworkParams} NetworkParams
- */
-
-/**
- * @typedef {NetworkParamsHelper | NetworkParams} NetworkParamsLike
  */
 
 /**
@@ -38,33 +34,23 @@ export class NetworkParamsHelper {
     }
 
     /**
-     * Returns default if called without args
-     * @param {Option<NetworkParamsLike>} params
-     * @returns {NetworkParamsHelper}
+     * @type {number[]}
      */
-    static new(params = None) {
-        if (!params) {
-            return new NetworkParamsHelper(DEFAULT_NETWORK_PARAMS())
-        } else if (params instanceof NetworkParamsHelper) {
-            return params
-        } else {
-            return new NetworkParamsHelper(params)
-        }
+    get costModelParamsV1() {
+        return expectSome(
+            this.params?.costModelParamsV1,
+            "'networkParams.costModelParamsV1' undefined"
+        )
     }
 
     /**
-     * @type {Object}
+     * @type {number[]}
      */
-    get costModel() {
-        const model = this.params?.latestParams?.costModels?.PlutusScriptV2
-
-        if (!model) {
-            throw new Error(
-                "'networkParams.latestParams.costModels.PlutusScriptV2' undefined"
-            )
-        }
-
-        return model
+    get costModelParamsV2() {
+        return expectSome(
+            this.params?.costModelParamsV2,
+            "'networkParams.costModelParamsV2' undefined"
+        )
     }
 
     /**
@@ -73,12 +59,12 @@ export class NetworkParamsHelper {
     get txFeeParams() {
         return [
             expectSome(
-                this.params?.latestParams?.txFeeFixed,
-                "'networkParams.latestParams.txFeeFixed' undefined"
+                this.params?.txFeeFixed,
+                "'networkParams.txFeeFixed' undefined"
             ),
             expectSome(
-                this.params?.latestParams?.txFeePerByte,
-                "'networkParams.latestParams.txFeePerByte' undefined"
+                this.params?.txFeePerByte,
+                "'networkParams.txFeePerByte' undefined"
             )
         ]
     }
@@ -89,12 +75,12 @@ export class NetworkParamsHelper {
     get exFeeParams() {
         return [
             expectSome(
-                this.params?.latestParams?.executionUnitPrices?.priceMemory,
-                "'networkParams.latestParams.executionUnitPrices.priceMemory' undefined"
+                this.params?.exMemFeePerUnit,
+                "'networkParams.exMemFeePerUnit' undefined"
             ),
             expectSome(
-                this.params?.latestParams?.executionUnitPrices?.priceSteps,
-                "'networkParams.latestParams.executionUnitPrices.priceSteps' undefined"
+                this.params?.exCpuFeePerUnit,
+                "'networkParams.exCpuFeePerUnit' undefined"
             )
         ]
     }
@@ -104,8 +90,8 @@ export class NetworkParamsHelper {
      */
     get lovelacePerUTXOByte() {
         return expectSome(
-            this.params?.latestParams?.utxoCostPerByte,
-            "'networkParams.latestParams.utxoCostPerByte' undefined"
+            this.params?.utxoDepositPerByte,
+            "'networkParams.utxoDepositPerByte' undefined"
         )
     }
 
@@ -114,8 +100,8 @@ export class NetworkParamsHelper {
      */
     get minCollateralPct() {
         return expectSome(
-            this.params?.latestParams?.collateralPercentage,
-            "'networkParams.latestParams.collateralPercentage' undefined"
+            this.params?.collateralPercentage,
+            "'networkParams.collateralPercentage' undefined"
         )
     }
 
@@ -124,8 +110,8 @@ export class NetworkParamsHelper {
      */
     get maxCollateralInputs() {
         return expectSome(
-            this.params?.latestParams?.maxCollateralInputs,
-            "'networkParams.latestParams.maxCollateralInputs' undefined"
+            this.params?.maxCollateralInputs,
+            "'networkParams.maxCollateralInputs' undefined"
         )
     }
 
@@ -135,12 +121,12 @@ export class NetworkParamsHelper {
     get maxTxExecutionBudget() {
         return [
             expectSome(
-                this.params?.latestParams?.maxTxExecutionUnits?.memory,
-                "'networkParams.latestParams.maxTxExecutionUnits.memory' undefined"
+                this.params?.maxTxExMem,
+                "'networkParams.maxTxExMem' undefined"
             ),
             expectSome(
-                this.params?.latestParams?.maxTxExecutionUnits?.steps,
-                "'networkParams.latestParams.maxTxExecutionUnits.steps' undefined"
+                this.params?.maxTxExCpu,
+                "'networkParams.maxTxExCpu' undefined"
             )
         ]
     }
@@ -169,8 +155,8 @@ export class NetworkParamsHelper {
      */
     get maxTxSize() {
         return expectSome(
-            this.params?.latestParams?.maxTxSize,
-            "'networkParams.latestParams.maxTxSize' undefined"
+            this.params?.maxTxSize,
+            "'networkParams.maxTxSize' undefined"
         )
     }
 
@@ -179,8 +165,8 @@ export class NetworkParamsHelper {
      */
     get secondsPerSlot() {
         return expectSome(
-            this.params?.shelleyGenesis?.slotLength,
-            "'networkParams.shelleyGenesis.slotLength' undefined"
+            this.params?.secondsPerSlot,
+            "'networkParams.secondsPerSlot' undefined"
         )
     }
 
@@ -190,8 +176,8 @@ export class NetworkParamsHelper {
     get stakeAddressDeposit() {
         return BigInt(
             expectSome(
-                this.params?.latestParams?.stakeAddressDeposit,
-                "'networkParams.latestParams.stakeAddressDeposit' undefined"
+                this.params?.stakeAddrDeposit,
+                "'networkParams.stakeAddrDeposit' undefined"
             )
         )
     }
@@ -202,8 +188,8 @@ export class NetworkParamsHelper {
      */
     get latestTipSlot() {
         return expectSome(
-            this.params?.latestTip?.slot,
-            "'networkParams.latestTip.slot' undefined"
+            this.params?.refTipSlot,
+            "'networkParams.refTipSlot' undefined"
         )
     }
 
@@ -213,22 +199,9 @@ export class NetworkParamsHelper {
      */
     get latestTipTime() {
         return expectSome(
-            this.params?.latestTip?.time,
-            "'networkParams.latestTip.time' undefined"
+            this.params?.refTipTime,
+            "'networkParams.refTipTime' undefined"
         )
-    }
-
-    /**
-     * Needed when calculating the scriptDataHash inside the TxBuilder
-     * @type {number[]}
-     */
-    get sortedV2CostParams() {
-        let baseObj = this.params?.latestParams?.costModels?.PlutusScriptV2
-        let keys = Object.keys(baseObj)
-
-        keys.sort()
-
-        return keys.map((key) => baseObj[key])
     }
 
     /**

@@ -16,7 +16,7 @@ import { TxRedeemer } from "./TxRedeemer.js"
 /**
  * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
- * @typedef {import("../params/index.js").NetworkParamsLike} NetworkParamsLike
+ * @typedef {import("../params/index.js").NetworkParams} NetworkParams
  */
 
 /**
@@ -172,7 +172,7 @@ export class TxWitnesses {
     }
 
     /**
-     * @param {NetworkParamsLike} params
+     * @param {NetworkParams} params
      * @returns {bigint}
      */
     calcExFee(params) {

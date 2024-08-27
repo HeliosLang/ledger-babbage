@@ -4,7 +4,7 @@ import { NetworkParamsHelper } from "./NetworkParamsHelper.js"
 
 describe(NetworkParamsHelper.name, () => {
     it("timeToSlot/slotToTime roundtrip", () => {
-        const h = NetworkParamsHelper.new()
+        const h = NetworkParamsHelper.default()
 
         const time = Date.now() + 300000
 

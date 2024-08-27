@@ -1,26 +1,5 @@
-import { ALONZO_GENESIS_PARAMS } from "@helios-lang/ledger-alonzo"
-import { SHELLEY_GENESIS_PARAMS } from "@helios-lang/ledger-shelley"
-import {
-    DEFAULT_COST_MODEL_PARAMS_V1,
-    DEFAULT_COST_MODEL_PARAMS_V2
-} from "@helios-lang/uplc"
-
-/**
- * @typedef {import("@helios-lang/ledger-alonzo").AlonzoGenesisParams} AlonzoGenesisParams
- * @typedef {import("@helios-lang/ledger-shelley").ShelleyGenesisParams} ShelleyGenesisParams
- * @typedef {import("@helios-lang/uplc").CostModelParamsV1} CostModelParamsV1
- * @typedef {import("@helios-lang/uplc").CostModelParamsV2} CostModelParamsV2
- * @typedef {import("./BabbageParams.js").BabbageParams} BabbageParams
- */
-
-/**
- * @typedef {{
- *   epoch: number
- *   hash: string
- *   slot: number
- *   time: number
- * }} LatestTip
- */
+import { COST_MODEL_PARAMS_V1 } from "@helios-lang/ledger-alonzo"
+import { COST_MODEL_PARAMS_V2 } from "./costmodel.js"
 
 /**
  * The raw JSON can be downloaded from the following CDN locations:
@@ -31,54 +10,49 @@ import {
  *
  * These JSONs are updated every 15 minutes.
  *
+ * Only include the minimum fields needed. flattened so it can be extended more easily
+ *
  * @typedef {{
- *   shelleyGenesis: ShelleyGenesisParams
- *   alonzoGenesis: AlonzoGenesisParams
- *   latestParams: BabbageParams
- *   latestTip: LatestTip
+ *   txFeeFixed: number
+ *   txFeePerByte: number
+ *   exMemFeePerUnit: number
+ *   exCpuFeePerUnit: number
+ *   utxoDepositPerByte: number
+ *   collateralPercentage: number
+ *   maxCollateralInputs: number
+ *   maxTxExMem: number
+ *   maxTxExCpu: number
+ *   maxTxSize: number
+ *   secondsPerSlot: number
+ *   stakeAddrDeposit: number
+ *   refTipSlot: number
+ *   refTipTime: number
+ *   costModelParamsV1: number[]
+ *   costModelParamsV2: number[]
  * }} NetworkParams
  */
 
 /**
- * TODO: also for preview and preprod
+ * TODO: also for preview and preprod (refTipSlot/Time will be)
  * @returns {NetworkParams}
  */
 export function DEFAULT_NETWORK_PARAMS() {
     return {
-        shelleyGenesis: SHELLEY_GENESIS_PARAMS,
-        alonzoGenesis: ALONZO_GENESIS_PARAMS,
-        latestParams: {
-            collateralPercentage: 150,
-            costModels: {
-                PlutusScriptV1: DEFAULT_COST_MODEL_PARAMS_V1(),
-                PlutusScriptV2: DEFAULT_COST_MODEL_PARAMS_V2()
-            },
-            executionUnitPrices: { priceMemory: 0.0577, priceSteps: 0.0000721 },
-            maxBlockBodySize: 90112,
-            maxBlockExecutionUnits: { memory: 62000000, steps: 20000000000 },
-            maxBlockHeaderSize: 1100,
-            maxCollateralInputs: 3,
-            maxTxExecutionUnits: { memory: 14000000, steps: 10000000000 },
-            maxTxSize: 16384,
-            maxValueSize: 5000,
-            minPoolCost: 170000000,
-            monetaryExpansion: 0.003,
-            poolPledgeInfluence: 0.3,
-            poolRetireMaxEpoch: 18,
-            protocolVersion: { major: 8, minor: 0 },
-            stakeAddressDeposit: 2000000,
-            stakePoolDeposit: 500000000,
-            stakePoolTargetNum: 500,
-            treasuryCut: 0.2,
-            txFeeFixed: 155381,
-            txFeePerByte: 44,
-            utxoCostPerByte: 4310
-        },
-        latestTip: {
-            epoch: 459,
-            hash: "4286b3906ecf96c751be977f8aa84967c52c9f237e79a7428cc94fe19f4c7361",
-            slot: 113163674,
-            time: 1704729965000
-        }
+        txFeeFixed: 155381,
+        txFeePerByte: 44,
+        exMemFeePerUnit: 0.0577,
+        exCpuFeePerUnit: 0.0000721,
+        utxoDepositPerByte: 4310,
+        collateralPercentage: 150,
+        maxCollateralInputs: 3,
+        maxTxExMem: 14000000,
+        maxTxExCpu: 10000000000,
+        maxTxSize: 16384,
+        secondsPerSlot: 1,
+        stakeAddrDeposit: 2000000,
+        refTipSlot: 113163674,
+        refTipTime: 1704729965000,
+        costModelParamsV1: COST_MODEL_PARAMS_V1,
+        costModelParamsV2: COST_MODEL_PARAMS_V2
     }
 }
