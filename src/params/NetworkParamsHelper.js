@@ -184,7 +184,7 @@ export class NetworkParamsHelper {
     }
 
     /**
-     * @private
+     * @protected
      * @type {number}
      */
     get latestTipSlot() {
@@ -195,7 +195,7 @@ export class NetworkParamsHelper {
     }
 
     /**
-     * @private
+     * @protected
      * @type {number}
      */
     get latestTipTime() {
