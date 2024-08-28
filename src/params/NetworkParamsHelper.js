@@ -136,6 +136,7 @@ export class NetworkParamsHelper {
      * Tx balancing picks additional inputs by starting from maxTxFee.
      * This is done because the order of the inputs can have a huge impact on the tx fee, so the order must be known before balancing.
      * If there aren't enough inputs to cover the maxTxFee and the min deposits of newly created UTxOs, the balancing will fail.
+     * TODO: make this private once we are in Conway era, because this should always take into account the cost of ref scripts
      * @type {bigint}
      */
     get maxTxFee() {

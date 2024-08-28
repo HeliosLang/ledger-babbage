@@ -257,7 +257,7 @@ export class TxWitnesses {
             if (
                 !this.v2RefScripts.some((prev) => equalsBytes(prev.hash(), h))
             ) {
-                if (refScript instanceof UplcProgramV1) {
+                if (refScript.plutusVersion == "PlutusScriptV1") {
                     throw new Error("UplcProgramV1 ref script not supported")
                 } else {
                     // TODO: do these scripts need to ordered?

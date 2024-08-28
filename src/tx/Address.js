@@ -261,10 +261,7 @@ export class Address {
         if (stakingCredentialData.tag == 1) {
             stakingCredential = None
         } else if (stakingCredentialData.tag == 0) {
-            stakingCredentialData.expectFields(
-                1,
-                "invalid StakingCredential option content within Address"
-            )
+            stakingCredentialData.expectFields(1)
 
             stakingCredential = StakingCredential.fromUplcData(
                 stakingCredentialData.fields[0]
