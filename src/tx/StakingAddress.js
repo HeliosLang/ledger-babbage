@@ -57,22 +57,6 @@ export class StakingAddress {
     }
 
     /**
-     * Convert a regular `Address` into a `StakingAddress`.
-     * Throws an error if the Address doesn't have a staking credential.
-     * @param {Address} addr
-     * @returns {StakingAddress}
-     */
-    static fromAddress(addr) {
-        const sh = addr.stakingHash
-
-        if (sh) {
-            return StakingAddress.fromHash(addr.isForMainnet(), sh)
-        } else {
-            throw new Error("address doesn't have a staking part")
-        }
-    }
-
-    /**
      * @param {boolean} isMainnet
      * @param {StakingAddressLike} arg
      * @returns {StakingAddress}
@@ -89,6 +73,31 @@ export class StakingAddress {
                   : arg instanceof Address
                     ? StakingAddress.fromAddress(arg)
                     : new StakingAddress(arg)
+    }
+
+    /**
+     * @param {boolean} isMainnet
+     * @param {number} seed
+     * @returns {StakingAddress}
+     */
+    static dummy(isMainnet, seed = 0) {
+        return StakingAddress.fromPubKeyHash(isMainnet, PubKeyHash.dummy(seed))
+    }
+
+    /**
+     * Convert a regular `Address` into a `StakingAddress`.
+     * Throws an error if the Address doesn't have a staking credential.
+     * @param {Address} addr
+     * @returns {StakingAddress}
+     */
+    static fromAddress(addr) {
+        const sh = addr.stakingHash
+
+        if (sh) {
+            return StakingAddress.fromHash(addr.isForMainnet(), sh)
+        } else {
+            throw new Error("address doesn't have a staking part")
+        }
     }
 
     /**

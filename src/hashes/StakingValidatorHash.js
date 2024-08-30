@@ -1,5 +1,5 @@
 import { decodeBytes } from "@helios-lang/cbor"
-import { compareBytes, equalsBytes } from "@helios-lang/codec-utils"
+import { compareBytes, dummyBytes, equalsBytes } from "@helios-lang/codec-utils"
 import { None, isSome } from "@helios-lang/type-utils"
 import { ByteArrayData, decodeUplcData } from "@helios-lang/uplc"
 import { ScriptHash } from "./ScriptHash.js"
@@ -39,10 +39,11 @@ export class StakingValidatorHash extends ScriptHash {
     }
 
     /**
+     * @param {number} seed
      * @returns {StakingValidatorHash<unknown>}
      */
-    static dummy() {
-        return new StakingValidatorHash(new Array(28).fill(0))
+    static dummy(seed = 0) {
+        return new StakingValidatorHash(dummyBytes(28, seed))
     }
 
     /**

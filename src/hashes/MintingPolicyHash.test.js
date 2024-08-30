@@ -1,3 +1,4 @@
+import { deepEqual, throws } from "assert"
 import { describe, it } from "node:test"
 import { UplcConst, UplcInt, UplcProgramV2 } from "@helios-lang/uplc"
 import { MintingPolicyHash } from "./MintingPolicyHash.js"
@@ -22,5 +23,15 @@ describe(MintingPolicyHash.name, () => {
          * @type {MintingPolicyHash<{program: UplcProgramV2}>}
          */
         const witnessed = new MintingPolicyHash([], { program: dummyProgram })
+    })
+
+    it("MintingPolicyHash.dummy() returns all 0s with default args", () => {
+        deepEqual(MintingPolicyHash.dummy().bytes, new Array(28).fill(0))
+    })
+
+    it("MintingPolicyHash.dummy() doesn't returns all 0s with non-zero seed arg", () => {
+        throws(() => {
+            deepEqual(MintingPolicyHash.dummy(1).bytes, new Array(28).fill(0))
+        })
     })
 })

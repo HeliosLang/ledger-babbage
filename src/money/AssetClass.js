@@ -94,6 +94,15 @@ export class AssetClass {
     }
 
     /**
+     * @param {number} seed
+     * @param {ByteArrayLike} tokenName
+     * @returns {AssetClass}
+     */
+    static dummy(seed = 0, tokenName = []) {
+        return new AssetClass(MintingPolicyHash.dummy(seed), tokenName)
+    }
+
+    /**
      * Deserializes bytes into an `AssetClass`.
      * @param {ByteArrayLike} bytes
      * @returns {AssetClass}

@@ -65,6 +65,14 @@ export class SpendingCredential {
     }
 
     /**
+     * @param {number} seed
+     * @returns {SpendingCredential<"PubKey", null>}
+     */
+    static dummy(seed = 0) {
+        return SpendingCredential.PubKey(PubKeyHash.dummy(seed))
+    }
+
+    /**
      * @param {PubKeyHashLike} hash
      * @returns {SpendingCredential<"PubKey", null>}
      */

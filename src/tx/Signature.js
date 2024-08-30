@@ -4,7 +4,12 @@ import {
     encodeBytes,
     encodeTuple
 } from "@helios-lang/cbor"
-import { ByteStream, bytesToHex, toBytes } from "@helios-lang/codec-utils"
+import {
+    ByteStream,
+    bytesToHex,
+    dummyBytes,
+    toBytes
+} from "@helios-lang/codec-utils"
 import { Ed25519 } from "@helios-lang/crypto"
 import { PubKey } from "./PubKey.js"
 import { PubKeyHash } from "../hashes/index.js"
@@ -42,10 +47,11 @@ export class Signature {
     }
 
     /**
+     * @param {number} seed
      * @returns {Signature}
      */
-    static dummy() {
-        return new Signature(PubKey.dummy(), new Array(64).fill(0))
+    static dummy(seed = 0) {
+        return new Signature(PubKey.dummy(seed), dummyBytes(64, seed))
     }
 
     /**

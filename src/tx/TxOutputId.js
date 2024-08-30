@@ -49,10 +49,13 @@ export class TxOutputId {
     }
 
     /**
+     * TODO: is fill==255 still needed for the latest version of the TxBuilder?
+     * @param {number} fill
+     * @param {number} utxoIdx
      * @returns {TxOutputId}
      */
-    static dummy() {
-        return new TxOutputId(TxId.dummy(), 0)
+    static dummy(fill = 255, utxoIdx = 0) {
+        return new TxOutputId(TxId.dummy(fill), utxoIdx)
     }
 
     /**

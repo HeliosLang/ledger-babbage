@@ -72,6 +72,14 @@ export class StakingHash {
     }
 
     /**
+     * @param {number} seed
+     * @returns {StakingHash<"PubKey", null>}
+     */
+    static dummy(seed = 0) {
+        return new StakingHash("PubKey", { hash: PubKeyHash.dummy(seed) })
+    }
+
+    /**
      * @param {PubKeyHashLike} hash
      * @returns {StakingHash<"PubKey", null>}
      */

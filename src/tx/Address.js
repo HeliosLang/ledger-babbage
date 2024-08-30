@@ -76,10 +76,11 @@ export class Address {
     /**
      * Returns a dummy address (based on a PubKeyHash with all null bytes)
      * @param {boolean} isMainnet
+     * @param {number} seed
      * @returns {Address}
      */
-    static dummy(isMainnet) {
-        return Address.fromPubKeyHash(isMainnet, PubKeyHash.dummy(), None)
+    static dummy(isMainnet, seed = 0) {
+        return Address.fromPubKeyHash(isMainnet, PubKeyHash.dummy(seed), None)
     }
 
     /**

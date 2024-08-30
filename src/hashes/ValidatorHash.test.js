@@ -1,3 +1,4 @@
+import { deepEqual, throws } from "node:assert"
 import { describe, it } from "node:test"
 import { UplcConst, UplcInt, UplcProgramV2 } from "@helios-lang/uplc"
 import { ValidatorHash } from "./ValidatorHash.js"
@@ -29,6 +30,16 @@ describe(ValidatorHash.name, () => {
          */
         const witnessed = new ValidatorHash(dummyBytes, {
             program: dummyProgram
+        })
+    })
+
+    it("ValidatorHash.dummy() returns all 0s for default args", () => {
+        deepEqual(ValidatorHash.dummy().bytes, new Array(28).fill(0))
+    })
+
+    it("ValidatorHash.dummy() doesn't return all 0s for non-zero seed args", () => {
+        throws(() => {
+            deepEqual(ValidatorHash.dummy(1).bytes, new Array(28).fill(0))
         })
     })
 })

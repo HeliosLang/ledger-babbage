@@ -1,5 +1,5 @@
 import { decodeBytes } from "@helios-lang/cbor"
-import { compareBytes, equalsBytes } from "@helios-lang/codec-utils"
+import { compareBytes, dummyBytes, equalsBytes } from "@helios-lang/codec-utils"
 import { None } from "@helios-lang/type-utils"
 import { ByteArrayData, decodeUplcData } from "@helios-lang/uplc"
 import { ScriptHash } from "./ScriptHash.js"
@@ -36,10 +36,11 @@ export class ValidatorHash extends ScriptHash {
     }
 
     /**
+     * @param {number} seed - can't be negative
      * @returns {ValidatorHash<unknown>}
      */
-    static dummy() {
-        return new ValidatorHash(new Array(28).fill(0))
+    static dummy(seed = 0) {
+        return new ValidatorHash(dummyBytes(28, seed))
     }
 
     /**

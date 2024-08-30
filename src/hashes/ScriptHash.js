@@ -1,6 +1,6 @@
-import { isSome } from "@helios-lang/type-utils"
 import { ScriptHash as ScriptHashAllegra } from "@helios-lang/ledger-allegra"
-import { compareBytes, equalsBytes } from "@helios-lang/codec-utils"
+import { compareBytes, dummyBytes, equalsBytes } from "@helios-lang/codec-utils"
+import { None, isSome } from "@helios-lang/type-utils"
 
 /**
  * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
@@ -38,6 +38,14 @@ export class ScriptHash extends ScriptHashAllegra {
      */
     static compare(a, b) {
         return compareBytes(a.bytes, b.bytes)
+    }
+
+    /**
+     * @param {number} seed
+     * @returns {ScriptHash}
+     */
+    static dummy(seed = 0) {
+        return new ScriptHash(dummyBytes(28, seed), None)
     }
 
     /**

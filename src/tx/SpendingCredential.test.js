@@ -1,3 +1,4 @@
+import { deepEqual, throws } from "node:assert"
 import { describe, it } from "node:test"
 import { UplcConst, UplcInt, UplcProgramV2 } from "@helios-lang/uplc"
 import { PubKeyHash, ValidatorHash } from "../hashes/index.js"
@@ -47,5 +48,15 @@ describe(SpendingCredential.name, () => {
          * @satisfies {SpendingCredential<"Validator", {program: UplcProgramV2}>}
          */
         const witnessedCopy = SpendingCredential.new(witnessed)
+    })
+
+    it("SpendingCredential.dummy() returns all 0s for default arg", () => {
+        deepEqual(SpendingCredential.dummy().bytes, new Array(28).fill(0))
+    })
+
+    it("SpendingCredential.dummy() doesn't return all 0s for non-zero seed arg", () => {
+        throws(() => {
+            deepEqual(SpendingCredential.dummy(1).bytes, new Array(28).fill(0))
+        })
     })
 })

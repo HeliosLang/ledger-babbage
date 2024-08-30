@@ -37,6 +37,33 @@ export class StakingCredential {
     }
 
     /**
+     * @template {StakingCredentialLike} T
+     * @param {T} arg
+     * @returns {(
+     *   T extends StakingCredential<infer K, infer C> ? StakingCredential<K, C> :
+     *   T extends StakingHash<infer K, infer C> ? StakingCredential<K, C> :
+     *   T extends PubKeyHash ? StakingCredential<"PubKey", null> :
+     *   T extends ValidatorHash<infer C> ? StakingCredential<"Validator", C> :
+     *   StakingCredential
+     * )}
+     */
+    static new(arg) {
+        return /** @type {any} */ (
+            arg instanceof StakingCredential
+                ? arg
+                : new StakingCredential(StakingHash.new(arg))
+        )
+    }
+
+    /**
+     * @param {number} seed
+     * @returns {StakingCredential}
+     */
+    static dummy(seed = 0) {
+        return new StakingCredential(StakingHash.dummy(seed))
+    }
+
+    /**
      * @template [C=unknown]
      * @param {number[]} bytes
      * @param {Option<C>} context
@@ -67,25 +94,6 @@ export class StakingCredential {
         } else {
             return None
         }
-    }
-
-    /**
-     * @template {StakingCredentialLike} T
-     * @param {T} arg
-     * @returns {(
-     *   T extends StakingCredential<infer K, infer C> ? StakingCredential<K, C> :
-     *   T extends StakingHash<infer K, infer C> ? StakingCredential<K, C> :
-     *   T extends PubKeyHash ? StakingCredential<"PubKey", null> :
-     *   T extends ValidatorHash<infer C> ? StakingCredential<"Validator", C> :
-     *   StakingCredential
-     * )}
-     */
-    static new(arg) {
-        return /** @type {any} */ (
-            arg instanceof StakingCredential
-                ? arg
-                : new StakingCredential(StakingHash.new(arg))
-        )
     }
 
     /**

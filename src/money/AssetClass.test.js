@@ -1,3 +1,4 @@
+import { deepEqual, throws } from "node:assert"
 import { describe, it } from "node:test"
 import { UplcConst, UplcInt, UplcProgramV2 } from "@helios-lang/uplc"
 import { MintingPolicyHash } from "../hashes/index.js"
@@ -34,5 +35,20 @@ describe(AssetClass.name, () => {
          * @satisfies {AssetClass<{program: UplcProgramV2}>}
          */
         const witnessed = new AssetClass(witnessedMph, [])
+    })
+
+    it("AssetClass.dummy() returns mph with all 0s and empty tokenName", () => {
+        const ac = AssetClass.dummy()
+
+        deepEqual(ac.mph.bytes, new Array(28).fill(0))
+        deepEqual(ac.tokenName, [])
+    })
+
+    it("AssetClass.dummy() doesn't return mph with all 0s for non-zero seed arg", () => {
+        const ac = AssetClass.dummy(1)
+
+        throws(() => {
+            deepEqual(ac.mph.bytes, new Array(28).fill(0))
+        })
     })
 })

@@ -1,5 +1,5 @@
 import { decodeBytes, encodeBytes } from "@helios-lang/cbor"
-import { bytesToHex, toBytes } from "@helios-lang/codec-utils"
+import { bytesToHex, dummyBytes, toBytes } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
 import { ByteArrayData, decodeUplcData } from "@helios-lang/uplc"
 import { PubKeyHash } from "../hashes/index.js"
@@ -40,10 +40,11 @@ export class PubKey {
     }
 
     /**
+     * @param {number} seed
      * @returns {PubKey}
      */
-    static dummy() {
-        return new PubKey(new Array(32).fill(0))
+    static dummy(seed = 0) {
+        return new PubKey(dummyBytes(32, seed))
     }
 
     /**

@@ -1,3 +1,4 @@
+import { deepEqual, throws } from "node:assert"
 import { describe, it } from "node:test"
 import { UplcConst, UplcInt, UplcProgramV2 } from "@helios-lang/uplc"
 import { PubKeyHash, StakingValidatorHash } from "../hashes/index.js"
@@ -42,5 +43,15 @@ describe(StakingCredential.name, () => {
          * @satisfies {StakingCredential<"Validator", {program: UplcProgramV2}>}
          */
         const witnessed = StakingCredential.new(witnessedVh)
+    })
+
+    it("StakingCredential.dummy() returns all 0s for default arg", () => {
+        deepEqual(StakingCredential.dummy().bytes, new Array(28).fill(0))
+    })
+
+    it("StakingCredential.dummy() doesn't return all 0s for non-zero seed arg", () => {
+        throws(() => {
+            deepEqual(StakingCredential.dummy(1).bytes, new Array(28).fill(0))
+        })
     })
 })
