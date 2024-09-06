@@ -200,7 +200,7 @@ export class TxOutputDatum {
 
                 return TxOutputDatum.Hash(DatumHash.fromUplcData(fields[0]))
             case 2:
-                if (fields.length != 2) {
+                if (fields.length != 1) {
                     throw new Error(
                         `expected 1 field for TxOutputDatum::Inline ConstrData, got ${fields.length} fields`
                     )
