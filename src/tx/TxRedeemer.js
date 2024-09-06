@@ -17,20 +17,25 @@ import { NetworkParamsHelper } from "../params/NetworkParamsHelper.js"
  */
 
 /**
- * @typedef {"Minting" | "Spending"} TxRedeemerKind
+ * @typedef {"Minting" | "Spending" | "Rewarding"} TxRedeemerKind
  */
 
 /**
+ * TODO: verify the Rewarding TxRedeemer payload is the withdrawal index
  * @template {TxRedeemerKind} T
  * @typedef {T extends "Spending" ? {
  *   inputIndex: number
  *   data: UplcData
  *   cost: Cost
- * }: {
+ * } : T extends "Minting" ? {
  *   policyIndex: number
  *   data: UplcData
  *   cost: Cost
- * }} TxRedeemerProps
+ * } : T extends "Rewarding" ? {
+ *   withdrawalIndex: number
+ *   data: UplcData
+ *   cost: Cost
+ * } : never} TxRedeemerProps
  */
 
 /**
@@ -101,6 +106,28 @@ export class TxRedeemer {
     }
 
     /**
+     * @param {IntLike} withdrawalIndex
+     * @param {UplcData} data
+     * @param {Cost} cost
+     * @returns {TxRedeemer<"Rewarding">}
+     */
+    static Rewarding(withdrawalIndex, data, cost = { mem: 0n, cpu: 0n }) {
+        const index = toInt(withdrawalIndex)
+
+        if (index < 0) {
+            throw new Error(
+                "negative TxRedeemer reward withdrawal index not allowed"
+            )
+        }
+
+        return new TxRedeemer("Rewarding", {
+            withdrawalIndex: index,
+            data,
+            cost
+        })
+    }
+
+    /**
      * @param {ByteArrayLike} bytes
      * @returns {TxRedeemer}
      */
@@ -122,6 +149,15 @@ export class TxRedeemer {
 
                 return TxRedeemer.Minting(policyIndex, data, cost)
             }
+            case 2:
+                throw new Error(`TxRedeemer.Certifying unhandled`)
+            case 3: {
+                const withdrawalIndex = decodeItem(decodeInt)
+                const data = decodeItem(decodeUplcData)
+                const cost = decodeItem(decodeCost)
+
+                return TxRedeemer.Rewarding(withdrawalIndex, data, cost)
+            }
             default:
                 throw new Error(`unhandled TxRedeemer tag ${tag}`)
         }
@@ -138,6 +174,8 @@ export class TxRedeemer {
             return a.props.policyIndex - b.props.policyIndex
         } else if (a.isSpending() && b.isSpending()) {
             return a.props.inputIndex - b.props.inputIndex
+        } else if (a.isRewarding() && b.isRewarding()) {
+            return a.props.withdrawalIndex - b.props.withdrawalIndex
         } else if (a.kind == b.kind) {
             throw new Error(`unhandled TxRedeemer kind ${a.kind}`)
         } else {
@@ -167,12 +205,15 @@ export class TxRedeemer {
             return this.props.policyIndex
         } else if (this.isSpending()) {
             return this.props.inputIndex
+        } else if (this.isRewarding()) {
+            return this.props.withdrawalIndex
         } else {
             throw new Error(`unhandled TxRedeemer kind ${this.kind}`)
         }
     }
 
     /**
+     * On-chain ConstrData tag
      * @type {number}
      */
     get tag() {
@@ -180,6 +221,8 @@ export class TxRedeemer {
             return 0
         } else if (this.isSpending()) {
             return 1
+        } else if (this.isRewarding()) {
+            return 2
         } else {
             throw new Error(`unhandled TxRedeemer kind ${this.kind}`)
         }
@@ -224,6 +267,17 @@ export class TxRedeemer {
                     cpu: this.cost.cpu.toString()
                 }
             }
+        } else if (this.isRewarding()) {
+            return {
+                redeemerType: "Rewarding",
+                withdrawalIndex: this.props.withdrawalIndex,
+                json: this.data.toSchemaJson(),
+                cbor: bytesToHex(this.data.toCbor()),
+                exUnits: {
+                    mem: this.cost.mem.toString(),
+                    cpu: this.cost.cpu.toString()
+                }
+            }
         } else {
             throw new Error("unhandled TxRedeemer kind")
         }
@@ -244,6 +298,13 @@ export class TxRedeemer {
     }
 
     /**
+     * @returns {this is TxRedeemer<"Rewarding">}
+     */
+    isRewarding() {
+        return this.kind == "Rewarding"
+    }
+
+    /**
      * @returns {number[]}
      */
     toCbor() {
@@ -252,7 +313,7 @@ export class TxRedeemer {
          *   0 -> spending
          *   1 -> minting
          *   2 -> certifying (TODO)
-         *   3 -> rewarding (TODO)
+         *   3 -> rewarding
          */
         if (this.isSpending()) {
             const props = this.props
@@ -269,6 +330,15 @@ export class TxRedeemer {
             return encodeTuple([
                 encodeInt(1),
                 encodeInt(props.policyIndex),
+                props.data.toCbor(),
+                encodeCost(props.cost)
+            ])
+        } else if (this.isRewarding()) {
+            const props = this.props
+
+            return encodeTuple([
+                encodeInt(3),
+                encodeInt(props.withdrawalIndex),
                 props.data.toCbor(),
                 encodeCost(props.cost)
             ])

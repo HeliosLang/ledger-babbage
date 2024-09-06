@@ -1,11 +1,13 @@
 import { ConstrData } from "@helios-lang/uplc"
 import { MintingPolicyHash } from "../hashes/index.js"
+import { StakingCredential } from "./StakingCredential.js"
 import { TxOutputId } from "./TxOutputId.js"
 import { TxRedeemer } from "./TxRedeemer.js"
 
 /**
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("../hashes/index.js").MintingPolicyHashLike} MintingPolicyHashLike
+ * @typedef {import("./StakingCredential.js").StakingCredentialLike} StakingCredentialLike
  * @typedef {import("./TxOutputId.js").TxOutputIdLike} TxOutputIdLike
  * @typedef {import("./TxRedeemer.js").TxRedeemerKind} TxRedeemerKind
  */
@@ -20,6 +22,8 @@ import { TxRedeemer } from "./TxRedeemer.js"
  *   policy: MintingPolicyHash
  * } : T extends "Spending" ? {
  *   outputId: TxOutputId
+ * } : T extends "Rewarding" ? {
+ *   credential: StakingCredential
  * } : never} ScriptPurposeProps
  */
 
@@ -74,6 +78,17 @@ export class ScriptPurpose {
     }
 
     /**
+     * @param {TxRedeemer<"Rewarding">} redeemer
+     * @param {StakingCredentialLike} stakingCredential
+     * @returns {ScriptPurpose<"Rewarding">}
+     */
+    static Rewarding(redeemer, stakingCredential) {
+        return new ScriptPurpose(redeemer, {
+            credential: StakingCredential.new(stakingCredential)
+        })
+    }
+
+    /**
      * @returns {this is ScriptPurpose<"Minting">}
      */
     isMinting() {
@@ -88,6 +103,13 @@ export class ScriptPurpose {
     }
 
     /**
+     * @returns {this is ScriptPurpose<"Rewarding">}
+     */
+    isRewarding() {
+        return this.redeemer.isRewarding()
+    }
+
+    /**
      * @returns {ConstrData}
      */
     toUplcData() {
@@ -95,6 +117,8 @@ export class ScriptPurpose {
             return new ConstrData(0, [this.props.policy.toUplcData()])
         } else if (this.isSpending()) {
             return new ConstrData(1, [this.props.outputId.toUplcData()])
+        } else if (this.isRewarding()) {
+            return new ConstrData(2, [this.props.credential.toUplcData()])
         } else {
             throw new Error(
                 `unhandled ScriptPurpose kind ${this.redeemer.kind}`
