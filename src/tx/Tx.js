@@ -659,6 +659,38 @@ export class Tx {
                         `actual cpu cost for minting ${mph.toHex()} too high, expected at most ${redeemer.cost.cpu}, got ${cost.cpu}`
                     )
                 }
+            } else if (redeemer.isRewarding()) {
+                const credential = expectSome(
+                    this.body.withdrawals[redeemer.index]
+                )[0].toCredential()
+                const stakingHash = credential.expectStakingHash()
+                const svh = expectSome(stakingHash.stakingValidatorHash)
+
+                const script = expectSome(this.witnesses.findUplcProgram(svh))
+                const scriptPurpose = ScriptPurpose.Rewarding(
+                    redeemer,
+                    credential
+                )
+                const scriptContext = new ScriptContextV2(txInfo, scriptPurpose)
+                const scriptContextData = scriptContext.toUplcData()
+
+                const args = [redeemerData, scriptContextData]
+
+                const { cost } = script.eval(
+                    args.map((a) => new UplcDataValue(a))
+                )
+
+                if (cost.mem > redeemer.cost.mem) {
+                    throw new Error(
+                        `actual mem cost for rewarding ${svh.toHex()} too high, expected at most ${redeemer.cost.mem}, got ${cost.mem}`
+                    )
+                }
+
+                if (cost.cpu > redeemer.cost.cpu) {
+                    throw new Error(
+                        `actual cpu cost for rewarding ${svh.toHex()} too high, expected at most ${redeemer.cost.cpu}, got ${cost.cpu}`
+                    )
+                }
             } else {
                 throw new Error("unhandled TxRedeemer kind")
             }

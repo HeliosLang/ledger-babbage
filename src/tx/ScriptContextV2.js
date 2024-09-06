@@ -88,6 +88,14 @@ export class ScriptContextV2 {
                             ).toUplcData(),
                             redeemer.data
                         ]
+                    } else if (redeemer.isRewarding()) {
+                        return [
+                            ScriptPurpose.Rewarding(
+                                redeemer,
+                                withdrawals[redeemer.index][0].toCredential()
+                            ).toUplcData(),
+                            redeemer.data
+                        ]
                     } else {
                         throw new Error(
                             `unhandled TxRedeemer kind ${redeemer.kind}`

@@ -8,7 +8,11 @@ import {
 import { bytesToHex, equalsBytes } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
 import { decodeUplcData, UplcProgramV1, UplcProgramV2 } from "@helios-lang/uplc"
-import { MintingPolicyHash, ValidatorHash } from "../hashes/index.js"
+import {
+    MintingPolicyHash,
+    StakingValidatorHash,
+    ValidatorHash
+} from "../hashes/index.js"
 import { NativeScript } from "../native/index.js"
 import { Signature } from "./Signature.js"
 import { TxRedeemer } from "./TxRedeemer.js"
@@ -208,7 +212,7 @@ export class TxWitnesses {
     }
 
     /**
-     * @param {number[] | MintingPolicyHash | ValidatorHash} hash
+     * @param {number[] | MintingPolicyHash | ValidatorHash | StakingValidatorHash} hash
      * @returns {UplcProgramV1 | UplcProgramV2}
      */
     findUplcProgram(hash) {
@@ -236,6 +240,10 @@ export class TxWitnesses {
             )
         } else if (hash instanceof ValidatorHash) {
             throw new Error(`script for validator ${hash.toHex()} not found`)
+        } else if (hash instanceof StakingValidatorHash) {
+            throw new Error(
+                `script for staking validator ${hash.toHex()} not found`
+            )
         } else {
             throw new Error(`script for ${bytesToHex(hash)} not found`)
         }
