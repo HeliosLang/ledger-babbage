@@ -49,13 +49,12 @@ export class TxOutputId {
     }
 
     /**
-     * TODO: is fill==255 still needed for the latest version of the TxBuilder?
-     * @param {number} fill
+     * @param {number} seed - defaults to -1, which means all TxId bytes are 255 (largest possible execution budget for operations involving an unknown TxId)
      * @param {number} utxoIdx
      * @returns {TxOutputId}
      */
-    static dummy(fill = 255, utxoIdx = 0) {
-        return new TxOutputId(TxId.dummy(fill), utxoIdx)
+    static dummy(seed = -1, utxoIdx = 0) {
+        return new TxOutputId(TxId.dummy(seed), utxoIdx)
     }
 
     /**

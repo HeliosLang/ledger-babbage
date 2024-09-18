@@ -1,5 +1,5 @@
 import { decodeBytes, encodeBytes } from "@helios-lang/cbor"
-import { bytesToHex, toBytes } from "@helios-lang/codec-utils"
+import { bytesToHex, dummyBytes, toBytes } from "@helios-lang/codec-utils"
 import { ByteArrayData, ConstrData, decodeUplcData } from "@helios-lang/uplc"
 
 /**
@@ -38,12 +38,16 @@ export class TxId {
     }
 
     /**
-     * Filled with 255 so that the internal show() function has max execution budget cost
-     * @param {number} fill
+     * By default filled with 255 so that the internal show() function (and other methods) has max execution budget cost
+     * @param {number} seed
      * @returns {TxId}
      */
-    static dummy(fill = 255) {
-        return new TxId(new Array(32).fill(fill))
+    static dummy(seed = -1) {
+        if (seed == -1) {
+            return new TxId(new Array(32).fill(255))
+        } else {
+            return new TxId(dummyBytes(32, seed))
+        }
     }
 
     /**
