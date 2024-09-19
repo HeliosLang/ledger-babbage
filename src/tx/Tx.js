@@ -35,11 +35,12 @@ import { ScriptContextV2 } from "./ScriptContextV2.js"
 /**
  * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
+ * @typedef {import("@helios-lang/uplc").UplcLoggingI} UplcLoggingI
  * @typedef {import("../params/index.js").NetworkParams} NetworkParams
  */
 
 /**
- * Represents a Cardano transaction. Can also be used as a transaction builder.
+ * Represents a Cardano transaction.  For transaction-building, see {@link TxBuilder} instead.
  */
 export class Tx {
     /**
@@ -68,7 +69,16 @@ export class Tx {
     metadata
 
     /**
-     * Use `Tx.new()` instead of this constructor for creating a new Tx builder.
+     * Access this through `hasValidationError()`
+     * @private
+     * @type {Option<string> | false}
+     */
+    validationError
+
+    /**
+     * Creates a new transaction; use {@link TxBuilder} to build a transaction instead.
+     * @remarks
+     * Use {@link Tx.fromCbor} to deserialize a transaction.
      * @param {TxBody} body
      * @param {TxWitnesses} witnesses
      * @param {boolean} valid - false whilst some signatures are still missing
@@ -79,6 +89,13 @@ export class Tx {
         this.witnesses = witnesses
         this.valid = valid
         this.metadata = metadata
+        this.validationFailure = None
+
+        Object.defineProperty(this, "validationFailure", {
+            enumerable: false,
+            writable: true,
+            configurable: false
+        })
     }
 
     /**
@@ -230,10 +247,23 @@ export class Tx {
     }
 
     /**
+     * indicates if the necessary signatures are present and valid
      * @returns {boolean}
      */
     isValid() {
         return this.valid
+    }
+
+    /**
+     * Indicates if a built transaction has passed all consistency checks.
+     * @remarks
+     * - `null` if the transaction hasn't been validated yet
+     * - `false` when the transaction is valid
+     * - a `string` with the error message if any validation check failed
+     * @returns {Option<string> | false}
+     */
+    get hasValidationError() {
+        return this.validationError
     }
 
     /**
@@ -246,6 +276,8 @@ export class Tx {
     }
 
     /**
+     * Restores input information after deserializing a CBOR-encoded transaction
+     * @remarks
      * A serialized tx throws away input information
      * This must be refetched from the network if the tx needs to be analyzed
      * @param {{getUtxo(id: TxOutputId): Promise<TxInput>}} network - the TxInput returned by the network must itself be fully recovered
@@ -324,9 +356,10 @@ export class Tx {
      *   * validity time range, which can only be checked upon submission
      *
      * @param {NetworkParams} params
-     * @param {boolean} strict - can be left when trying to inspect general transactions, the TxBuilder should however always set strict=true
+     * @param {boolean} strict - can be left as false for inspecting general transactions. The TxBuilder always uses strict=true.
+     * @param {Option<UplcLoggingI>} logOptions
      */
-    validate(params, strict = false) {
+    validate(params, strict = false, logOptions = None) {
         this.validateSize(params)
 
         this.validateFee(params)
@@ -337,7 +370,7 @@ export class Tx {
 
         this.validateScriptsPresent(strict)
 
-        this.validateRedeemersExBudget(params)
+        this.validateRedeemersExBudget(params, logOptions)
 
         this.validateTotalExBudget(params, strict)
 
@@ -354,6 +387,25 @@ export class Tx {
         this.validateMetadata()
 
         this.validateScriptDataHash(params)
+    }
+
+    /**
+     * Validates the transaction without throwing an error if it isn't valid
+     * If the transaction doesn't validate, the tx's ${validationError} will be set
+     * @param {NetworkParams} params
+     * @param {boolean} strict - can be left as false for inspecting general transactions. The TxBuilder always uses strict=true.
+     * @param {Option<UplcLoggingI>} logOptions
+     * @returns {Tx}
+     */
+    validateUnsafe(params, strict = false, logOptions) {
+        try {
+            this.validate(params, true, None)
+            this.validationError = false
+        } catch (e) {
+            this.validationError = e.message
+            console.error("Error validating transaction: ", e)
+        }
+        return this
     }
 
     /**
@@ -590,8 +642,9 @@ export class Tx {
     /**
      * @private
      * @param {NetworkParams} params
+     * @param {Option<UplcLoggingI>} logOptions
      */
-    validateRedeemersExBudget(params) {
+    validateRedeemersExBudget(params, logOptions = None) {
         const txInfo = this.body.toTxInfo(
             params,
             this.witnesses.redeemers,
@@ -600,6 +653,7 @@ export class Tx {
         )
 
         this.witnesses.redeemers.forEach((redeemer) => {
+            logOptions?.reset?.("validate")
             const redeemerData = redeemer.data
 
             if (redeemer.isSpending()) {
@@ -618,7 +672,9 @@ export class Tx {
                 const args = [datumData, redeemerData, scriptContextData]
 
                 const { cost } = script.eval(
-                    args.map((a) => new UplcDataValue(a))
+                    args.map((a) => new UplcDataValue(a)),
+                    undefined,
+                    logOptions
                 )
 
                 if (cost.mem > redeemer.cost.mem) {
@@ -645,7 +701,9 @@ export class Tx {
                 const args = [redeemerData, scriptContextData]
 
                 const { cost } = script.eval(
-                    args.map((a) => new UplcDataValue(a))
+                    args.map((a) => new UplcDataValue(a)),
+                    undefined,
+                    logOptions
                 )
 
                 if (cost.mem > redeemer.cost.mem) {
@@ -677,7 +735,9 @@ export class Tx {
                 const args = [redeemerData, scriptContextData]
 
                 const { cost } = script.eval(
-                    args.map((a) => new UplcDataValue(a))
+                    args.map((a) => new UplcDataValue(a)),
+                    undefined,
+                    logOptions
                 )
 
                 if (cost.mem > redeemer.cost.mem) {
