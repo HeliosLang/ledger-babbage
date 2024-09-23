@@ -11,7 +11,7 @@ import {
 } from "@helios-lang/cbor"
 import { bytesToHex, compareBytes } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
-import { None, expectSome } from "@helios-lang/type-utils"
+import { None, expectSome, isLeft } from "@helios-lang/type-utils"
 import {
     ListData,
     UplcDataValue,
@@ -89,9 +89,9 @@ export class Tx {
         this.witnesses = witnesses
         this.valid = valid
         this.metadata = metadata
-        this.validationFailure = None
+        this.validationError = None
 
-        Object.defineProperty(this, "validationFailure", {
+        Object.defineProperty(this, "validationError", {
             enumerable: false,
             writable: true,
             configurable: false
@@ -356,10 +356,13 @@ export class Tx {
      *   * validity time range, which can only be checked upon submission
      *
      * @param {NetworkParams} params
-     * @param {boolean} strict - can be left as false for inspecting general transactions. The TxBuilder always uses strict=true.
-     * @param {Option<UplcLoggingI>} logOptions
+     * @param {Object} options
+     * @param {boolean} [options.strict=false] - can be left as false for inspecting general transactions. The TxBuilder always uses strict=true.
+     * @param {boolean} [options.verbose=false] - provides more details of transaction-budget usage when the transaction is close to the limit
+     * @param {UplcLoggingI} [options.logOptions] - logging options for diagnostics
      */
-    validate(params, strict = false, logOptions = None) {
+    validate(params, options = {}) {
+        const { strict = false, logOptions } = options
         this.validateSize(params)
 
         this.validateFee(params)
@@ -372,7 +375,7 @@ export class Tx {
 
         this.validateRedeemersExBudget(params, logOptions)
 
-        this.validateTotalExBudget(params, strict)
+        this.validateTotalExBudget(params, options)
 
         this.validateOutputs(params, strict)
 
@@ -393,17 +396,22 @@ export class Tx {
      * Validates the transaction without throwing an error if it isn't valid
      * If the transaction doesn't validate, the tx's ${validationError} will be set
      * @param {NetworkParams} params
-     * @param {boolean} strict - can be left as false for inspecting general transactions. The TxBuilder always uses strict=true.
-     * @param {Option<UplcLoggingI>} logOptions
+     * @param {Object} [options]
+     * @param {boolean} [options.strict=false] - can be left as false for inspecting general transactions. The TxBuilder always uses strict=true.
+     * @param {boolean} [options.verbose=false] - provides more details of transaction-budget usage when the transaction is close to the limit
+     * @param {UplcLoggingI} [options.logOptions] - hooks for script logging during transaction execution
      * @returns {Tx}
      */
-    validateUnsafe(params, strict = false, logOptions) {
+    validateUnsafe(params, options = {}) {
         try {
-            this.validate(params, true, None)
+            this.validate(params, options)
             this.validationError = false
         } catch (e) {
             this.validationError = e.message
-            console.error("Error validating transaction: ", e)
+            console.error(
+                "Error validating transaction: ",
+                this.validationError
+            )
         }
         return this
     }
@@ -644,7 +652,7 @@ export class Tx {
      * @param {NetworkParams} params
      * @param {Option<UplcLoggingI>} logOptions
      */
-    validateRedeemersExBudget(params, logOptions = None) {
+    validateRedeemersExBudget(params, logOptions) {
         const txInfo = this.body.toTxInfo(
             params,
             this.witnesses.redeemers,
@@ -652,109 +660,62 @@ export class Tx {
             this.id()
         )
 
-        this.witnesses.redeemers.forEach((redeemer) => {
+        for (const redeemer of this.witnesses.redeemers) {
             logOptions?.reset?.("validate")
-            const redeemerData = redeemer.data
+            const { description, summary, script, args } =
+                redeemer.getRedeemerDetails(this, txInfo)
 
-            if (redeemer.isSpending()) {
-                const utxo = expectSome(this.body.inputs[redeemer.index])
-
-                const script = expectSome(
-                    this.witnesses.findUplcProgram(
-                        expectSome(utxo.address.validatorHash)
-                    )
-                )
-                const datumData = expectSome(utxo.datum?.data)
-                const scriptPurpose = ScriptPurpose.Spending(redeemer, utxo.id)
-                const scriptContext = new ScriptContextV2(txInfo, scriptPurpose)
-                const scriptContextData = scriptContext.toUplcData()
-
-                const args = [datumData, redeemerData, scriptContextData]
-
-                const { cost } = script.eval(
-                    args.map((a) => new UplcDataValue(a)),
-                    undefined,
-                    logOptions
-                )
-
-                if (cost.mem > redeemer.cost.mem) {
-                    throw new Error(
-                        `actual mem cost for spending UTxO ${utxo.id.toString()} too high, expected at most ${redeemer.cost.mem}, got ${cost.mem}`
-                    )
-                }
-
-                if (cost.cpu > redeemer.cost.cpu) {
-                    throw new Error(
-                        `actual cpu cost for spending UTxO ${utxo.id.toString()} too high, expected at most ${redeemer.cost.cpu}, got ${cost.cpu}`
-                    )
-                }
-            } else if (redeemer.isMinting()) {
-                const mph = expectSome(
-                    this.body.minted.getPolicies()[redeemer.index]
-                )
-
-                const script = expectSome(this.witnesses.findUplcProgram(mph))
-                const scriptPurpose = ScriptPurpose.Minting(redeemer, mph)
-                const scriptContext = new ScriptContextV2(txInfo, scriptPurpose)
-                const scriptContextData = scriptContext.toUplcData()
-
-                const args = [redeemerData, scriptContextData]
-
-                const { cost } = script.eval(
-                    args.map((a) => new UplcDataValue(a)),
-                    undefined,
-                    logOptions
-                )
-
-                if (cost.mem > redeemer.cost.mem) {
-                    throw new Error(
-                        `actual mem cost for minting ${mph.toHex()} too high, expected at most ${redeemer.cost.mem}, got ${cost.mem}`
-                    )
-                }
-
-                if (cost.cpu > redeemer.cost.cpu) {
-                    throw new Error(
-                        `actual cpu cost for minting ${mph.toHex()} too high, expected at most ${redeemer.cost.cpu}, got ${cost.cpu}`
-                    )
-                }
-            } else if (redeemer.isRewarding()) {
-                const credential = expectSome(
-                    this.body.withdrawals[redeemer.index]
-                )[0].toCredential()
-                const stakingHash = credential.expectStakingHash()
-                const svh = expectSome(stakingHash.stakingValidatorHash)
-
-                const script = expectSome(this.witnesses.findUplcProgram(svh))
-                const scriptPurpose = ScriptPurpose.Rewarding(
-                    redeemer,
-                    credential
-                )
-                const scriptContext = new ScriptContextV2(txInfo, scriptPurpose)
-                const scriptContextData = scriptContext.toUplcData()
-
-                const args = [redeemerData, scriptContextData]
-
-                const { cost } = script.eval(
-                    args.map((a) => new UplcDataValue(a)),
-                    undefined,
-                    logOptions
-                )
-
-                if (cost.mem > redeemer.cost.mem) {
-                    throw new Error(
-                        `actual mem cost for rewarding ${svh.toHex()} too high, expected at most ${redeemer.cost.mem}, got ${cost.mem}`
-                    )
-                }
-
-                if (cost.cpu > redeemer.cost.cpu) {
-                    throw new Error(
-                        `actual cpu cost for rewarding ${svh.toHex()} too high, expected at most ${redeemer.cost.cpu}, got ${cost.cpu}`
-                    )
-                }
-            } else {
-                throw new Error("unhandled TxRedeemer kind")
+            // when the script is not optimized, the logs will come from here
+            //!!! todo: this line doesn't catch errors if we e.g. include an extra 'undefined' arg.  WHY?
+            const { cost, result } = script.eval(args, { logOptions })
+            /* @type { CekResult } */
+            let altResult
+            if (script.alt) {
+                // this never happens if the main script has done logging!
+                altResult = script.alt.eval(args, { logOptions }) // emit logs from non-optimized version
             }
-        })
+
+            if (cost.mem > redeemer.cost.mem) {
+                throw new Error(
+                    `actual mem cost for ${summary} too high, expected at most ${redeemer.cost.mem}, got ${cost.mem}` +
+                        `\n ... in ${description}` // @reviewers: WDYT?
+                )
+            }
+
+            if (cost.cpu > redeemer.cost.cpu) {
+                throw new Error(
+                    `actual cpu cost for ${summary} too high, expected at most ${redeemer.cost.cpu}, got ${cost.cpu}` +
+                        `\n ... in ${description}` // @reviewers: WDYT?
+                )
+            }
+
+            if (isLeft(result)) {
+                if (altResult && !isLeft(altResult.result)) {
+                    console.warn(
+                        ` - WARNING: optimized script for ${summary} failed, but unoptimized succeeded`
+                    )
+                    debugger
+                } else {
+                    console.warn(
+                        `NOTE: no alt script attached for ${summary}; no script logs available.  See \`compile\` docs to enable it`
+                    )
+
+                    debugger
+                }
+                const errMsg =
+                    result.left.error ||
+                    logOptions?.lastMsg ||
+                    (script.alt
+                        ? `‹no alt= script for ${summary}, no logged errors›`
+                        : "‹no logged errors›")
+                logOptions?.logError?.(errMsg)
+                throw new Error(
+                    `script validation error in ${summary}: ${errMsg}` +
+                        `\n  ... error in ${description}` //+ `: ${errMsg}`
+                )
+            }
+            logOptions?.flush?.()
+        }
     }
 
     /**
@@ -864,41 +825,88 @@ export class Tx {
     }
 
     /**
-     * Throws error if execution budget is exceeded
+     * Throws error if execution budget is exceeded, with optional warnings and script-profile diagnostics
      * @private
      * @param {NetworkParams} params
-     * @param {boolean} verbose - if true -> warn if ex budget >= 50% max budget
+     * @param {Object} options
+     * @param {boolean} [options.verbose=false] - if true -> warn if ex budget >= 50% max budget
+     * @param {boolean} [options.strict=true] - if false, over-budget in the presence of unoptimized scripts will only be a warning
      */
-    validateTotalExBudget(params, verbose = false) {
-        const helper = new NetworkParamsHelper(params)
+    validateTotalExBudget(params, options) {
+        const verbose = options.verbose ?? false
+        const strict = options.strict ?? true
 
+        const helper = new NetworkParamsHelper(params)
         let totalMem = 0n
         let totalCpu = 0n
 
+        let missingAltScripts = 0
         for (let redeemer of this.witnesses.redeemers) {
             totalMem += redeemer.cost.mem
             totalCpu += redeemer.cost.cpu
+
+            const { script, description } = redeemer.getRedeemerDetails(this)
+            if (!script.alt) {
+                missingAltScripts += 1
+                if (verbose) {
+                    console.error(
+                        ` - unoptimized? mem=${memPercent(redeemer.cost.mem)}% cpu=${cpuPercent(redeemer.cost.cpu)}% in ${description} `
+                    )
+                }
+            }
         }
 
         let [maxMem, maxCpu] = helper.maxTxExecutionBudget
 
         if (totalMem > BigInt(maxMem)) {
-            throw new Error(
-                `execution budget exceeded for mem (${totalMem.toString()} > ${maxMem.toString()})\n`
-            )
+            const problem = `tx execution budget exceeded for mem (${totalMem.toString()} = ${memPercent(totalMem)}% of ${maxMem.toString()})
+
+            \n`
+            if (missingAltScripts && !strict) {
+                console.error(problem)
+                console.error(
+                    `Note: ${missingAltScripts} unoptimized(?) scripts`
+                )
+            } else {
+                throw new Error(problem)
+            }
         } else if (verbose && totalMem > BigInt(maxMem) / 2n) {
             console.error(
-                `Warning: mem usage >= 50% of max mem budget (${totalMem.toString()}/${maxMem.toString()} >= 0.5)`
+                `Warning: mem usage = ${memPercent(totalMem)}% of tx-max mem budget (${totalMem.toString()}/${maxMem.toString()} >= 50%)`
             )
         }
 
         if (totalCpu > BigInt(maxCpu)) {
-            throw new Error(
-                `execution budget exceeded for cpu (${totalCpu.toString()} > ${maxCpu.toString()})\n`
-            )
+            const problem = `tx execution budget exceeded for cpu (${totalCpu.toString()} > ${maxCpu.toString()})\n`
+            if (missingAltScripts && !strict) {
+                console.error(problem)
+                console.error(
+                    `Note: ${missingAltScripts} unoptimized(?) scripts`
+                )
+            } else {
+                throw new Error(problem)
+            }
         } else if (verbose && totalCpu > BigInt(maxCpu) / 2n) {
             console.error(
-                `Warning: cpu usage >= 50% of max cpu budget (${totalCpu.toString()}/${maxCpu.toString()} >= 0.5)`
+                `Warning: cpu usage = ${cpuPercent(totalCpu)}% of tx-max cpu budget (${totalCpu.toString()}/${maxCpu.toString()} >= 50%)`
+            )
+        }
+        function memPercent(mem) {
+            return (
+                Math.floor(
+                    Number(
+                        (mem * 1000n) / BigInt(helper.maxTxExecutionBudget[0])
+                    )
+                ) / 10
+            )
+        }
+        function cpuPercent(cpu) {
+            return (
+                Math.floor(
+                    Number(
+                        (cpu * 1000n) / BigInt(helper.maxTxExecutionBudget[1])
+                    )
+                ) / 10
             )
         }
     }
