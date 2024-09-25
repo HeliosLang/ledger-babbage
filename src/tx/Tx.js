@@ -419,7 +419,7 @@ export class Tx {
         if (this.body.collateral.length > helper.maxCollateralInputs) {
             throw new Error("too many collateral inputs")
         }
-        
+
         if (this.isSmart()) {
             const minCollateral = this.getMinCollateral(params, helper)
 
@@ -440,7 +440,7 @@ export class Tx {
             if (sum.lovelace < minCollateral) {
                 throw new Error("not enough collateral")
             }
-            
+
             const included = sum.lovelace
             if (this.body.collateralReturn != null) {
                 sum = sum.subtract(this.body.collateralReturn.value)
