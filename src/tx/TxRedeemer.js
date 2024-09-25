@@ -7,6 +7,13 @@ import {
 import { bytesToHex, toInt } from "@helios-lang/codec-utils"
 import { decodeCost, decodeUplcData, encodeCost } from "@helios-lang/uplc"
 import { NetworkParamsHelper } from "../params/NetworkParamsHelper.js"
+import { Tx } from "./Tx.js"
+import { UplcProgramV1 } from "@helios-lang/uplc"
+import { UplcProgramV2 } from "@helios-lang/uplc"
+import { expectSome } from "@helios-lang/type-utils"
+import { ScriptContextV2 } from "./ScriptContextV2.js"
+import { ScriptPurpose } from "./ScriptPurpose.js"
+import { UplcDataValue } from "@helios-lang/uplc"
 
 /**
  * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
@@ -277,6 +284,108 @@ export class TxRedeemer {
                     mem: this.cost.mem.toString(),
                     cpu: this.cost.cpu.toString()
                 }
+            }
+        } else {
+            throw new Error("unhandled TxRedeemer kind")
+        }
+    }
+
+    /**
+     * Extracts script details for a specific redeemer on a transaction.
+     * @remarks
+     * With the optional `txInfo` argument, the
+     * `args` for evaluating the redeemer are also included in the result.
+     * @overload
+     * @param {Tx} tx
+     * @returns {Object}
+     *    @property {string} summary - a short label indicating the part of the txn unlocked by the redeemer
+     *    @property {string} description - a more complete specifier of the redeemer
+     *    @property {UplcProgramV2} script - the UplcProgram{V2, V3} validating the redeemer
+     * }}
+     */
+    /**
+     * Extracts script-evaluation details for a specific redeemer from the transaction
+     * @overload
+     * @param {Tx} tx
+     * @param {import("./TxInfo.js").TxInfo} txInfo
+     * @returns {Object}
+     *    @property {string} summary - a short label indicating the part of the txn unlocked by the redeemer
+     *    @property {string} description - a more complete specifier of the redeemer
+     *    @property {UplcProgramV2} script - the UplcProgram{V2, V3} validating the redeemer
+     *     @property {UplcDataValue[]} args - the arguments to the script, included if `txInfo` is provided
+     * }}
+     */
+    /**
+     * @param {Tx} tx
+     * @param {import("./TxInfo.js").TxInfo} [txInfo]
+     * @returns {Object}
+     * @property {string} summary
+     * @property {string} description
+     * @property {UplcProgramV2} script
+     * @property {UplcDataValue[] | undefined} args
+     */
+    getRedeemerDetails(tx, txInfo = undefined) {
+        if (this.isSpending()) {
+            const utxo = expectSome(tx.body.inputs[this.index])
+
+            const datumData = expectSome(utxo.datum?.data)
+            const summary = `input @${this.index}`
+            return {
+                summary,
+                description: `spending tx.inputs[${this.index}] (from UTxO ${utxo.id.toString()})`,
+                script: expectSome(
+                    tx.witnesses.findUplcProgram(
+                        expectSome(utxo.address.validatorHash)
+                    )
+                ),
+                args: !txInfo
+                    ? undefined
+                    : [
+                          datumData,
+                          this.data,
+                          new ScriptContextV2(
+                              txInfo,
+                              ScriptPurpose.Spending(this, utxo.id)
+                          ).toUplcData()
+                      ].map((a) => new UplcDataValue(a))
+            }
+        } else if (this.isMinting()) {
+            const mph = expectSome(tx.body.minted.getPolicies()[this.index])
+            const summary = `mint @${this.index}`
+            return {
+                summary,
+                description: `minting policy ${this.index} (${mph.toHex()})`,
+                script: expectSome(tx.witnesses.findUplcProgram(mph)),
+                args: !txInfo
+                    ? undefined
+                    : [
+                          this.data,
+                          new ScriptContextV2(
+                              txInfo,
+                              ScriptPurpose.Minting(this, mph)
+                          ).toUplcData()
+                      ].map((a) => new UplcDataValue(a))
+            }
+        } else if (this.isRewarding()) {
+            const credential = expectSome(
+                tx.body.withdrawals[this.index]
+            )[0].toCredential()
+            const stakingHash = credential.expectStakingHash()
+            const svh = expectSome(stakingHash.stakingValidatorHash)
+            const summary = `rewards @${this.index}`
+            return {
+                summary,
+                description: `withdrawing ${summary} (${svh.toHex()})`,
+                script: expectSome(tx.witnesses.findUplcProgram(svh)),
+                args: !txInfo
+                    ? undefined
+                    : [
+                          this.data,
+                          new ScriptContextV2(
+                              txInfo,
+                              ScriptPurpose.Rewarding(this, credential)
+                          ).toUplcData()
+                      ].map((a) => new UplcDataValue(a))
             }
         } else {
             throw new Error("unhandled TxRedeemer kind")
