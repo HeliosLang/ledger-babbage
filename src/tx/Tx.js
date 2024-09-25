@@ -400,8 +400,16 @@ export class Tx {
     }
 
     /**
-     * Throws an error if there isn't enough collateral
-     * Also throws an error if the script doesn't require collateral, but collateral was actually included
+     * Validates that the collateral is correct
+     * @remarks
+     * Throws an error if there isn't enough collateral,
+     * or if too much collateral is returned.
+     *
+     * The net collateral must not be more than 5x the required
+     * collateral, or an error is thrown.
+     *
+     * Also throws an error if the script doesn't require collateral, but
+     * collateral was actually included.
      * @private
      * @param {NetworkParams} params
      */
@@ -411,17 +419,9 @@ export class Tx {
         if (this.body.collateral.length > helper.maxCollateralInputs) {
             throw new Error("too many collateral inputs")
         }
-
+        
         if (this.isSmart()) {
-            let minCollateralPct = helper.minCollateralPct
-
-            // only use the exBudget
-
-            const fee = this.body.fee
-
-            const minCollateral = BigInt(
-                Math.ceil((minCollateralPct * Number(fee)) / 100.0)
-            )
+            const minCollateral = this.getMinCollateral(params, helper)
 
             let sum = new Value()
 
@@ -437,15 +437,27 @@ export class Tx {
                 }
             }
 
-            if (this.body.collateralReturn != null) {
-                sum = sum.subtract(this.body.collateralReturn.value)
-            }
-
             if (sum.lovelace < minCollateral) {
                 throw new Error("not enough collateral")
             }
+            
+            const included = sum.lovelace
+            if (this.body.collateralReturn != null) {
+                sum = sum.subtract(this.body.collateralReturn.value)
 
-            if (sum.lovelace > minCollateral * 5n) {
+                const netCollateral = sum.lovelace
+                const collateralDiff = netCollateral - minCollateral
+                if (collateralDiff < 0) {
+                    const returned = this.body.collateralReturn.value.lovelace
+                    throw new Error(
+                        `collateralReturn is ${0n - collateralDiff} lovelace is too high\n` +
+                            ` ${included} collateral inputs; need ${minCollateral} minimum\n` +
+                            `-${returned} collateral returned, so ${netCollateral} net collateral is too low`
+                    )
+                }
+            }
+
+            if (included > minCollateral * 5n) {
                 console.error("Warning: way too much collateral")
             }
         } else {
@@ -453,6 +465,25 @@ export class Tx {
                 throw new Error("unnecessary collateral included")
             }
         }
+    }
+
+    /**
+     * computes the collateral needed for the transaction
+     * @param {NetworkParams} params
+     * @param {NetworkParamsHelper} [helper]
+     * @private
+     * @returns {bigint}
+     */
+    getMinCollateral(params, helper = new NetworkParamsHelper(params)) {
+        let minCollateralPct = helper.minCollateralPct
+
+        // only use the exBudget
+        const fee = this.body.fee
+
+        const minCollateral = BigInt(
+            Math.ceil((minCollateralPct * Number(fee)) / 100.0)
+        )
+        return minCollateral
     }
 
     /**
