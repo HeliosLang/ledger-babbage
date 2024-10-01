@@ -736,10 +736,7 @@ export class Tx {
                     (script.alt
                         ? `‹no alt= script for ${summary}, no logged errors›`
                         : "‹no logged errors›")
-                logOptions?.logError?.(
-                    errMsg,
-                    result.left.callSites.slice().pop()
-                )
+                logOptions?.logError?.(errMsg, result.left.callSites.slice())
                 throw new Error(
                     `script validation error in ${summary}: ${errMsg}` +
                         `\n ... error in ${description}` +

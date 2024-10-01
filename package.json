@@ -45,12 +45,12 @@
     },
     "dependencies": {
         "@helios-lang/cbor": "^0.1.21",
-        "@helios-lang/codec-utils": "^0.1.34",
-        "@helios-lang/crypto": "^0.1.9",
+        "@helios-lang/codec-utils": "^0.1.35",
+        "@helios-lang/crypto": "^0.1.14",
         "@helios-lang/ledger-allegra": "^0.1.2",
         "@helios-lang/ledger-alonzo": "^0.1.5",
         "@helios-lang/ledger-shelley": "^0.1.4",
-        "@helios-lang/type-utils": "^0.1.21",
-        "@helios-lang/uplc": "^0.3.11"
+        "@helios-lang/type-utils": "^0.1.22",
+        "@helios-lang/uplc": "^0.3.12"
     }
 }
