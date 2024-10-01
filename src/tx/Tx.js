@@ -11,16 +11,10 @@ import {
 } from "@helios-lang/cbor"
 import { bytesToHex, compareBytes } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
-import { None, expectSome, isLeft } from "@helios-lang/type-utils"
-import {
-    ListData,
-    UplcDataValue,
-    UplcProgramV1,
-    UplcProgramV2
-} from "@helios-lang/uplc"
+import { None, isLeft } from "@helios-lang/type-utils"
+import { ListData, UplcProgramV1, UplcProgramV2 } from "@helios-lang/uplc"
 import { Value } from "../money/index.js"
 import { NetworkParamsHelper } from "../params/index.js"
-import { ScriptPurpose } from "./ScriptPurpose.js"
 import { Signature } from "./Signature.js"
 import { StakingAddress } from "./StakingAddress.js"
 import { TxBody } from "./TxBody.js"
@@ -30,7 +24,6 @@ import { TxMetadata } from "./TxMetadata.js"
 import { TxOutputId } from "./TxOutputId.js"
 import { TxRedeemer } from "./TxRedeemer.js"
 import { TxWitnesses } from "./TxWitnesses.js"
-import { ScriptContextV2 } from "./ScriptContextV2.js"
 
 /**
  * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
@@ -698,12 +691,16 @@ export class Tx {
 
             // when the script is not optimized, the logs will come from here
             //!!! todo: this line doesn't catch errors if we e.g. include an extra 'undefined' arg.  WHY?
-            const { cost, result } = script.eval(args, { logOptions })
+            const { cost, result } = script.eval(args, {
+                logOptions: logOptions ?? undefined
+            })
             /* @type { CekResult } */
             let altResult
             if (script.alt) {
                 // this never happens if the main script has done logging!
-                altResult = script.alt.eval(args, { logOptions }) // emit logs from non-optimized version
+                altResult = script.alt.eval(args, {
+                    logOptions: logOptions ?? undefined
+                }) // emit logs from non-optimized version
             }
 
             if (cost.mem > redeemer.cost.mem) {
@@ -739,10 +736,14 @@ export class Tx {
                     (script.alt
                         ? `‹no alt= script for ${summary}, no logged errors›`
                         : "‹no logged errors›")
-                logOptions?.logError?.(errMsg)
+                logOptions?.logError?.(
+                    errMsg,
+                    result.left.callSites.slice().pop()
+                )
                 throw new Error(
                     `script validation error in ${summary}: ${errMsg}` +
-                        `\n  ... error in ${description}` //+ `: ${errMsg}`
+                        `\n ... error in ${description}` +
+                        `\n stack trace:\n    ${result.left.callSites.map((s) => s.toString()).join("\n    ")}`
                 )
             }
             logOptions?.flush?.()

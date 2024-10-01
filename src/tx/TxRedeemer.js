@@ -21,6 +21,7 @@ import { UplcDataValue } from "@helios-lang/uplc"
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("@helios-lang/uplc").Cost} Cost
  * @typedef {import("../params/index.js").NetworkParams} NetworkParams
+ * @typedef {import("./TxInfo.js").TxInfo} TxInfo
  */
 
 /**
@@ -291,38 +292,43 @@ export class TxRedeemer {
     }
 
     /**
+     * @typedef {Object} RedeemerDetailsWithoutArgs
+     * @property {string} summary - a short label indicating the part of the txn unlocked by the redeemer
+     * @property {string} description - a more complete specifier of the redeemer
+     * @property {UplcProgramV1 | UplcProgramV2} script - the UplcProgram validating the redeemer
+     */
+    /**
+     * @typedef {Object} RedeemerDetailsWithArgs
+     * @property {string} summary - a short label indicating the part of the txn unlocked by the redeemer
+     * @property {string} description - a more complete specifier of the redeemer
+     * @property {UplcProgramV2} script - the UplcProgram{V2, V3} validating the redeemer
+     * @property {UplcDataValue[]} args - the arguments to the script, included if `txInfo` is provided
+     */
+    /**
      * Extracts script details for a specific redeemer on a transaction.
      * @remarks
      * With the optional `txInfo` argument, the
      * `args` for evaluating the redeemer are also included in the result.
      * @overload
      * @param {Tx} tx
-     * @returns {Object}
-     *    @property {string} summary - a short label indicating the part of the txn unlocked by the redeemer
-     *    @property {string} description - a more complete specifier of the redeemer
-     *    @property {UplcProgramV2} script - the UplcProgram{V2, V3} validating the redeemer
-     * }}
+     * @returns {RedeemerDetailsWithoutArgs}
      */
     /**
      * Extracts script-evaluation details for a specific redeemer from the transaction
      * @overload
      * @param {Tx} tx
-     * @param {import("./TxInfo.js").TxInfo} txInfo
-     * @returns {Object}
-     *    @property {string} summary - a short label indicating the part of the txn unlocked by the redeemer
-     *    @property {string} description - a more complete specifier of the redeemer
-     *    @property {UplcProgramV2} script - the UplcProgram{V2, V3} validating the redeemer
-     *     @property {UplcDataValue[]} args - the arguments to the script, included if `txInfo` is provided
-     * }}
+     * @param {TxInfo} txInfo
+     * @returns {RedeemerDetailsWithArgs}
      */
     /**
      * @param {Tx} tx
-     * @param {import("./TxInfo.js").TxInfo} [txInfo]
-     * @returns {Object}
-     * @property {string} summary
-     * @property {string} description
-     * @property {UplcProgramV2} script
-     * @property {UplcDataValue[] | undefined} args
+     * @param {TxInfo} [txInfo]
+     * @returns {{
+     *   summary: string
+     *   description: string
+     *   script: UplcProgramV1 | UplcProgramV2
+     *   args: UplcDataValue[] | undefined
+     * }}
      */
     getRedeemerDetails(tx, txInfo = undefined) {
         if (this.isSpending()) {
