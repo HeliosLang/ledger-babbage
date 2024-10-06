@@ -50,7 +50,7 @@
         "@helios-lang/ledger-allegra": "^0.1.2",
         "@helios-lang/ledger-alonzo": "^0.1.5",
         "@helios-lang/ledger-shelley": "^0.1.4",
-        "@helios-lang/type-utils": "^0.1.22",
-        "@helios-lang/uplc": "^0.3.13"
+        "@helios-lang/type-utils": "^0.1.23",
+        "@helios-lang/uplc": "^0.4.13"
     }
 }

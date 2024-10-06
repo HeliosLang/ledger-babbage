@@ -12,7 +12,12 @@ import {
 import { bytesToHex, compareBytes } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
 import { None, isLeft } from "@helios-lang/type-utils"
-import { ListData, UplcProgramV1, UplcProgramV2 } from "@helios-lang/uplc"
+import {
+    ListData,
+    UplcProgramV1,
+    UplcProgramV2,
+    UplcRuntimeError
+} from "@helios-lang/uplc"
 import { Value } from "../money/index.js"
 import { NetworkParamsHelper } from "../params/index.js"
 import { Signature } from "./Signature.js"
@@ -736,11 +741,15 @@ export class Tx {
                     (script.alt
                         ? `‹no alt= script for ${summary}, no logged errors›`
                         : "‹no logged errors›")
-                logOptions?.logError?.(errMsg, result.left.callSites.slice())
-                throw new Error(
+                logOptions?.logError?.(
+                    errMsg,
+                    result.left.callSites.slice().pop()?.site
+                ) // XXX: it might be weird to log this error message AND throw an error containing the same
+
+                throw new UplcRuntimeError(
                     `script validation error in ${summary}: ${errMsg}` +
-                        `\n ... error in ${description}` +
-                        `\n stack trace:\n    ${result.left.callSites.map((s) => s.toString()).join("\n    ")}`
+                        `\n ... error in ${description}`, // TODO: should description and summary also be part of the UplcRuntimeError stack trace?
+                    result.left.callSites
                 )
             }
             logOptions?.flush?.()
