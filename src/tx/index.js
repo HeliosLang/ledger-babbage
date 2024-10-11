@@ -20,6 +20,7 @@ export { TxWitnesses } from "./TxWitnesses.js"
 
 /**
  * @typedef {import("./Address.js").AddressLike} AddressLike
+ * @typedef {import("./DCert.js").DCertKind} DCertKind
  * @typedef {import("./SpendingCredential.js").SpendingCredentialLike} SpendingCredentialLike
  * @typedef {import("./StakingAddress.js").StakingAddressLike} StakingAddressLike
  * @typedef {import("./TxInfo.js").TxInfo} TxInfo
