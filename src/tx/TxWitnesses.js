@@ -20,6 +20,8 @@ import { TxRedeemer } from "./TxRedeemer.js"
 /**
  * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
+ * @typedef {import("@helios-lang/uplc").UplcProgramV1I} UplcProgramV1I
+ * @typedef {import("@helios-lang/uplc").UplcProgramV2I} UplcProgramV2I
  * @typedef {import("../params/index.js").NetworkParams} NetworkParams
  */
 
@@ -29,9 +31,9 @@ import { TxRedeemer } from "./TxRedeemer.js"
  *   datums: UplcData[]
  *   redeemers: TxRedeemer[]
  *   nativeScripts: NativeScript[]
- *   v1Scripts: UplcProgramV1[]
- *   v2Scripts: UplcProgramV2[]
- *   v2RefScripts: UplcProgramV2[]
+ *   v1Scripts: UplcProgramV1I[]
+ *   v2Scripts: UplcProgramV2I[]
+ *   v2RefScripts: UplcProgramV2I[]
  * }} TxWitnessesProps
  */
 
@@ -64,19 +66,19 @@ export class TxWitnesses {
 
     /**
      * @readonly
-     * @type {UplcProgramV1[]}
+     * @type {UplcProgramV1I[]}
      */
     v1Scripts
 
     /**
      * @readonly
-     * @type {UplcProgramV2[]}
+     * @type {UplcProgramV2I[]}
      */
     v2Scripts
 
     /**
      * @readonly
-     * @type {UplcProgramV2[]}
+     * @type {UplcProgramV2I[]}
      */
     v2RefScripts
 
@@ -136,10 +138,10 @@ export class TxWitnesses {
 
     /**
      * Returns all the scripts, including the reference scripts
-     * @type {(NativeScript | UplcProgramV1 | UplcProgramV2)[]}
+     * @type {(NativeScript | UplcProgramV1I | UplcProgramV2I)[]}
      */
     get allScripts() {
-        return /** @type {(NativeScript | UplcProgramV1 | UplcProgramV2)[]} */ ([])
+        return /** @type {(NativeScript | UplcProgramV1I | UplcProgramV2I)[]} */ ([])
             .concat(this.v1Scripts)
             .concat(this.v2Scripts)
             .concat(this.v2RefScripts)
@@ -213,7 +215,7 @@ export class TxWitnesses {
 
     /**
      * @param {number[] | MintingPolicyHash | ValidatorHash | StakingValidatorHash} hash
-     * @returns {UplcProgramV1 | UplcProgramV2}
+     * @returns {UplcProgramV1I | UplcProgramV2I}
      */
     findUplcProgram(hash) {
         const bytes = Array.isArray(hash) ? hash : hash.bytes
@@ -257,7 +259,7 @@ export class TxWitnesses {
     }
 
     /**
-     * @param {(UplcProgramV1 | UplcProgramV2)[]} refScriptsInRefInputs
+     * @param {(UplcProgramV1I | UplcProgramV2I)[]} refScriptsInRefInputs
      */
     recover(refScriptsInRefInputs) {
         refScriptsInRefInputs.forEach((refScript) => {

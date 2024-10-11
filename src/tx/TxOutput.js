@@ -30,6 +30,8 @@ import { TxOutputDatum } from "./TxOutputDatum.js"
 /**
  * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
+ * @typedef {import("@helios-lang/uplc").UplcProgramV1I} UplcProgramV1I
+ * @typedef {import("@helios-lang/uplc").UplcProgramV2I} UplcProgramV2I
  * @typedef {import("../money/index.js").ValueLike} ValueLike
  * @typedef {import("../params/index.js").NetworkParams} NetworkParams
  * @typedef {import("./Address.js").AddressLike} AddressLike
@@ -75,7 +77,7 @@ export class TxOutput {
     datum
 
     /**
-     * @type {Option<UplcProgramV1 | UplcProgramV2>}
+     * @type {Option<UplcProgramV1I | UplcProgramV2I>}
      */
     refScript
 
@@ -89,7 +91,7 @@ export class TxOutput {
      * @param {Address<CSpending, CStaking> | AddressLike} address
      * @param {ValueLike} value
      * @param {Option<TxOutputDatum>} datum
-     * @param {Option<UplcProgramV1 | UplcProgramV2>} refScript - plutus v2 script for now
+     * @param {Option<UplcProgramV1I | UplcProgramV2I>} refScript - plutus v2 script for now
      */
     constructor(
         address,
@@ -137,7 +139,7 @@ export class TxOutput {
             }
 
             /**
-             * @type {Option<UplcProgramV1 | UplcProgramV2>}
+             * @type {Option<UplcProgramV1I | UplcProgramV2I>}
              */
             const refScript = (() => {
                 if (refScriptBytes) {

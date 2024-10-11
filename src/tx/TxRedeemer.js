@@ -5,21 +5,25 @@ import {
     encodeTuple
 } from "@helios-lang/cbor"
 import { bytesToHex, toInt } from "@helios-lang/codec-utils"
-import { decodeCost, decodeUplcData, encodeCost } from "@helios-lang/uplc"
-import { NetworkParamsHelper } from "../params/NetworkParamsHelper.js"
-import { Tx } from "./Tx.js"
-import { UplcProgramV1 } from "@helios-lang/uplc"
-import { UplcProgramV2 } from "@helios-lang/uplc"
 import { expectSome } from "@helios-lang/type-utils"
+import {
+    UplcDataValue,
+    decodeCost,
+    decodeUplcData,
+    encodeCost
+} from "@helios-lang/uplc"
+import { NetworkParamsHelper } from "../params/NetworkParamsHelper.js"
 import { ScriptContextV2 } from "./ScriptContextV2.js"
 import { ScriptPurpose } from "./ScriptPurpose.js"
-import { UplcDataValue } from "@helios-lang/uplc"
+import { Tx } from "./Tx.js"
 
 /**
  * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("@helios-lang/uplc").Cost} Cost
+ * @typedef {import("@helios-lang/uplc").UplcProgramV1I} UplcProgramV1I
+ * @typedef {import("@helios-lang/uplc").UplcProgramV2I} UplcProgramV2I
  * @typedef {import("../params/index.js").NetworkParams} NetworkParams
  * @typedef {import("./TxInfo.js").TxInfo} TxInfo
  */
@@ -295,13 +299,13 @@ export class TxRedeemer {
      * @typedef {Object} RedeemerDetailsWithoutArgs
      * @property {string} summary - a short label indicating the part of the txn unlocked by the redeemer
      * @property {string} description - a more complete specifier of the redeemer
-     * @property {UplcProgramV1 | UplcProgramV2} script - the UplcProgram validating the redeemer
+     * @property {UplcProgramV1I | UplcProgramV2I} script - the UplcProgram validating the redeemer
      */
     /**
      * @typedef {Object} RedeemerDetailsWithArgs
      * @property {string} summary - a short label indicating the part of the txn unlocked by the redeemer
      * @property {string} description - a more complete specifier of the redeemer
-     * @property {UplcProgramV2} script - the UplcProgram{V2, V3} validating the redeemer
+     * @property {UplcProgramV2I} script - the UplcProgram{V2, V3} validating the redeemer
      * @property {UplcDataValue[]} args - the arguments to the script, included if `txInfo` is provided
      */
     /**
@@ -326,7 +330,7 @@ export class TxRedeemer {
      * @returns {{
      *   summary: string
      *   description: string
-     *   script: UplcProgramV1 | UplcProgramV2
+     *   script: UplcProgramV1I | UplcProgramV2I
      *   args: UplcDataValue[] | undefined
      * }}
      */

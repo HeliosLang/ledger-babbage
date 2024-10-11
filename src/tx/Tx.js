@@ -12,12 +12,7 @@ import {
 import { bytesToHex, compareBytes } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
 import { None, isLeft } from "@helios-lang/type-utils"
-import {
-    ListData,
-    UplcProgramV1,
-    UplcProgramV2,
-    UplcRuntimeError
-} from "@helios-lang/uplc"
+import { ListData, UplcRuntimeError } from "@helios-lang/uplc"
 import { Value } from "../money/index.js"
 import { NetworkParamsHelper } from "../params/index.js"
 import { Signature } from "./Signature.js"
@@ -34,6 +29,8 @@ import { TxWitnesses } from "./TxWitnesses.js"
  * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("@helios-lang/uplc").UplcLoggingI} UplcLoggingI
+ * @typedef {import("@helios-lang/uplc").UplcProgramV1I} UplcProgramV1I
+ * @typedef {import("@helios-lang/uplc").UplcProgramV2I} UplcProgramV2I
  * @typedef {import("../params/index.js").NetworkParams} NetworkParams
  */
 
@@ -293,7 +290,7 @@ export class Tx {
                     return refScripts
                 }
             },
-            /** @type {(UplcProgramV1 | UplcProgramV2)[]} */ ([])
+            /** @type {(UplcProgramV1I | UplcProgramV2I)[]} */ ([])
         )
 
         this.witnesses.recover(refScriptsInRefInputs)

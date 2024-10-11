@@ -7,7 +7,7 @@ import {
 } from "@helios-lang/cbor"
 import { ByteStream } from "@helios-lang/codec-utils"
 import { None } from "@helios-lang/type-utils"
-import { ConstrData, UplcProgramV1, UplcProgramV2 } from "@helios-lang/uplc"
+import { ConstrData } from "@helios-lang/uplc"
 import { Value } from "../money/Value.js"
 import { Address } from "./Address.js"
 import { TxOutput } from "./TxOutput.js"
@@ -17,6 +17,8 @@ import { TxOutputId } from "./TxOutputId.js"
 /**
  * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
+ * @typedef {import("@helios-lang/uplc").UplcProgramV1I} UplcProgramV1I
+ * @typedef {import("@helios-lang/uplc").UplcProgramV2I} UplcProgramV2I
  * @typedef {import("./TxOutputDatum.js").TxOutputDatumKind} TxOutputDatumKind
  * @typedef {import("./TxOutputId.js").TxOutputIdLike} TxOutputIdLike
  */
@@ -31,7 +33,7 @@ import { TxOutputId } from "./TxOutputId.js"
  * @template TDatum
  * @template TRedeemer
  * @typedef {{
- *   program: UplcProgramV1 | UplcProgramV2
+ *   program: UplcProgramV1I | UplcProgramV2I
  *   datum: Cast<TDatum, any>
  *   redeemer: Cast<any, TRedeemer>
  * }} TxInputContext

@@ -1,4 +1,9 @@
-import { UplcProgramV1, UplcProgramV2 } from "@helios-lang/uplc"
+export {}
+
+/**
+ * @typedef {import("@helios-lang/uplc").UplcProgramV1I} UplcProgramV1I
+ * @typedef {import("@helios-lang/uplc").UplcProgramV2I} UplcProgramV2I
+ */
 
 /**
  * @template TStrict
@@ -19,7 +24,7 @@ import { UplcProgramV1, UplcProgramV2 } from "@helios-lang/uplc"
  * @template TRedeemerStrict
  * @template TRedeemerPermissive
  * @typedef {DatumPaymentContext<TDatumPermissive> & {
- *   program: UplcProgramV1 | UplcProgramV2
+ *   program: UplcProgramV1I | UplcProgramV2I
  *   datum: Cast<TDatumStrict, TDatumPermissive>
  *   redeemer: Cast<TRedeemerStrict, TRedeemerPermissive>
  * }} SpendingContext
