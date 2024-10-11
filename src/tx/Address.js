@@ -13,14 +13,14 @@ import { SpendingCredential } from "./SpendingCredential.js"
 import { StakingCredential } from "./StakingCredential.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("../hashes/index.js").StakingHashKind} StakingHashKind
  * @typedef {import("./SpendingCredential.js").SpendingCredentialKind} SpendingCredentialKind
  */
 
 /**
- * @typedef {Address | ByteArrayLike} AddressLike
+ * @typedef {Address | BytesLike} AddressLike
  */
 
 /**
@@ -51,7 +51,7 @@ export class Address {
     stakingContext
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @param {Option<CSpending>} spendingContext
      * @param {Option<CStaking>} stakingContext
      */
@@ -115,7 +115,7 @@ export class Address {
 
     /**
      * Deserializes bytes into an `Address`.
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {Address}
      */
     static fromCbor(bytes) {

@@ -18,7 +18,7 @@ import { Signature } from "./Signature.js"
 import { TxRedeemer } from "./TxRedeemer.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("../params/index.js").NetworkParams} NetworkParams
  */
@@ -103,7 +103,7 @@ export class TxWitnesses {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {TxWitnesses}
      */
     static fromCbor(bytes) {

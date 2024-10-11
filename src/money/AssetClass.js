@@ -16,7 +16,7 @@ import { ByteArrayData, ConstrData, decodeUplcData } from "@helios-lang/uplc"
 import { MintingPolicyHash } from "../hashes/index.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("../hashes/index.js").MintingPolicyHashLike} MintingPolicyHashLike
@@ -25,10 +25,10 @@ import { MintingPolicyHash } from "../hashes/index.js"
 /**
  * @typedef {string | [
  *   MintingPolicyHashLike,
- *   ByteArrayLike
+ *   BytesLike
  * ] | {
  *   mph: MintingPolicyHashLike,
- *   tokenName: ByteArrayLike
+ *   tokenName: BytesLike
  * }} AssetClassLike
  */
 
@@ -55,7 +55,7 @@ export class AssetClass {
 
     /**
      * @param {MintingPolicyHash<C>} mph - policy with optional context
-     * @param {ByteArrayLike} tokenName
+     * @param {BytesLike} tokenName
      */
     constructor(mph, tokenName) {
         this.mph = mph
@@ -76,7 +76,7 @@ export class AssetClass {
     /**
      * @template {AssetClassLike} T
      * @param {T} arg
-     * @returns {T extends [MintingPolicyHash<infer C>, ByteArrayLike] ? AssetClass<C> : T extends AssetClass<infer C> ?  AssetClass<C> : AssetClass}
+     * @returns {T extends [MintingPolicyHash<infer C>, BytesLike] ? AssetClass<C> : T extends AssetClass<infer C> ?  AssetClass<C> : AssetClass}
      */
     static new(arg) {
         return /** @type {any} */ (
@@ -95,7 +95,7 @@ export class AssetClass {
 
     /**
      * @param {number} seed
-     * @param {ByteArrayLike} tokenName
+     * @param {BytesLike} tokenName
      * @returns {AssetClass}
      */
     static dummy(seed = 0, tokenName = []) {
@@ -104,7 +104,7 @@ export class AssetClass {
 
     /**
      * Deserializes bytes into an `AssetClass`.
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {AssetClass}
      */
     static fromCbor(bytes) {
@@ -236,7 +236,7 @@ export class AssetClass {
 }
 
 /**
- * @param {[AssetClassLike] | [MintingPolicyHashLike, ByteArrayLike]} args
+ * @param {[AssetClassLike] | [MintingPolicyHashLike, BytesLike]} args
  * @returns {[MintingPolicyHash, number[]]}
  */
 export function handleAssetClassArgs(...args) {
@@ -249,7 +249,7 @@ export function handleAssetClassArgs(...args) {
 }
 
 /**
- * @param {[AssetClassLike, IntLike] | [MintingPolicyHashLike, ByteArrayLike, IntLike]} args
+ * @param {[AssetClassLike, IntLike] | [MintingPolicyHashLike, BytesLike, IntLike]} args
  * @returns {[MintingPolicyHash, number[], bigint]}
  */
 export function handleAssetClassArgsWithQty(...args) {

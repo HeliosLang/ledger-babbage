@@ -17,14 +17,14 @@ import { Address } from "./Address.js"
 import { StakingCredential } from "./StakingCredential.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("../hashes/index.js").StakingHashLike} StakingHashLike
  * @typedef {import("./StakingCredential.js").StakingCredentialLike} StakingCredentialLike
  */
 
 /**
- * @typedef {StakingAddress | ByteArrayLike | Address | StakingCredential | PubKeyHash | ValidatorHash} StakingAddressLike
+ * @typedef {StakingAddress | BytesLike | Address | StakingCredential | PubKeyHash | ValidatorHash} StakingAddressLike
  */
 
 /**
@@ -44,7 +44,7 @@ export class StakingAddress {
     bytes
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      */
     constructor(bytes) {
         this.bytes = toBytes(bytes)
@@ -117,7 +117,7 @@ export class StakingAddress {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {StakingAddress}
      */
     static fromCbor(bytes) {

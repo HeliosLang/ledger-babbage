@@ -31,7 +31,7 @@ import { TxRedeemer } from "./TxRedeemer.js"
 import { TxWitnesses } from "./TxWitnesses.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("@helios-lang/uplc").UplcLoggingI} UplcLoggingI
  * @typedef {import("../params/index.js").NetworkParams} NetworkParams
@@ -98,7 +98,7 @@ export class Tx {
 
     /**
      * Deserialize a CBOR encoded Cardano transaction (input is either an array of bytes, or a hex string).
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {Tx}
      */
     static fromCbor(bytes) {

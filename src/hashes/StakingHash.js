@@ -7,7 +7,7 @@ import { StakingValidatorHash } from "./StakingValidatorHash.js"
 import { ValidatorHash } from "./ValidatorHash.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("../hashes/index.js").PubKeyHashLike} PubKeyHashLike
  * @typedef {import("../hashes/index.js").StakingValidatorHashLike} StakingValidatorHashLike
@@ -125,7 +125,7 @@ export class StakingHash {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {StakingHash}
      */
     static fromCbor(bytes) {

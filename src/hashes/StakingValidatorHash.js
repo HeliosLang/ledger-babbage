@@ -5,14 +5,14 @@ import { ByteArrayData, decodeUplcData } from "@helios-lang/uplc"
 import { ScriptHash } from "./ScriptHash.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("./Hash.js").Hash} Hash
  */
 
 /**
  * @template [C=unknown]
- * @typedef {StakingValidatorHash<C> | ByteArrayLike} StakingValidatorHashLike
+ * @typedef {StakingValidatorHash<C> | BytesLike} StakingValidatorHashLike
  */
 
 /**
@@ -25,7 +25,7 @@ import { ScriptHash } from "./ScriptHash.js"
  */
 export class StakingValidatorHash extends ScriptHash {
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @param {Option<C>} context
      */
     constructor(bytes, context = None) {
@@ -60,7 +60,7 @@ export class StakingValidatorHash extends ScriptHash {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {StakingValidatorHash}
      */
     static fromCbor(bytes) {
@@ -76,7 +76,7 @@ export class StakingValidatorHash extends ScriptHash {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {StakingValidatorHash}
      */
     static fromUplcCbor(bytes) {

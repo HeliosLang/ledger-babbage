@@ -3,7 +3,7 @@ import { blake2b } from "@helios-lang/crypto"
 import { decodeMetadataAttr, encodeMetadataAttr } from "./TxMetadataAttr.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("./TxMetadataAttr.js").TxMetadataAttr} TxMetadataAttr
  */
 
@@ -23,7 +23,7 @@ export class TxMetadata {
 
     /**
      * Decodes a TxMetadata instance from Cbor
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {TxMetadata}
      */
     static fromCbor(bytes) {

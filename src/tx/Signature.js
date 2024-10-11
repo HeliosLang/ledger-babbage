@@ -15,7 +15,7 @@ import { PubKey } from "./PubKey.js"
 import { PubKeyHash } from "../hashes/index.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("./PubKey.js").PubKeyLike} PubKeyLike
  */
 
@@ -39,7 +39,7 @@ export class Signature {
 
     /**
      * @param {PubKeyLike} pubKey
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      */
     constructor(pubKey, bytes) {
         this.pubKey = PubKey.new(pubKey)
@@ -55,7 +55,7 @@ export class Signature {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {Signature}
      */
     static fromCbor(bytes) {

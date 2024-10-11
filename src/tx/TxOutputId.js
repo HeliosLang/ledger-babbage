@@ -14,14 +14,14 @@ import {
 import { TxId } from "./TxId.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("./TxId.js").TxIdLike} TxIdLike
  */
 
 /**
- * @typedef {TxOutputId | string | [TxId | ByteArrayLike, IntLike] | {txId: TxId | ByteArrayLike, utxoIdx: IntLike}} TxOutputIdLike
+ * @typedef {TxOutputId | string | [TxId | BytesLike, IntLike] | {txId: TxId | BytesLike, utxoIdx: IntLike}} TxOutputIdLike
  */
 /**
  * Id of a Utxo
@@ -89,7 +89,7 @@ export class TxOutputId {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {TxOutputId}
      */
     static fromCbor(bytes) {
@@ -121,7 +121,7 @@ export class TxOutputId {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {TxOutputId}
      */
     static fromUplcCbor(bytes) {

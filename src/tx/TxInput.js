@@ -15,7 +15,7 @@ import { TxOutputDatum } from "./TxOutputDatum.js"
 import { TxOutputId } from "./TxOutputId.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("./TxOutputDatum.js").TxOutputDatumKind} TxOutputDatumKind
  * @typedef {import("./TxOutputId.js").TxOutputIdLike} TxOutputIdLike
@@ -51,9 +51,10 @@ export class TxInput {
 
     /**
      * Can be mutated in order to recover
+     * @private
      * @type {Option<TxOutput>}
      */
-    #output
+    _output
 
     /**
      * @param {TxOutputIdLike} outputId
@@ -61,12 +62,12 @@ export class TxInput {
      */
     constructor(outputId, output = None) {
         this.id = TxOutputId.new(outputId)
-        this.#output = output
+        this._output = output
     }
 
     /**
      * Decodes either the ledger representation of full representation of a TxInput
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {TxInput}
      */
     static fromCbor(bytes) {
@@ -112,7 +113,7 @@ export class TxInput {
      * @param {boolean} checkUniqueness
      */
     static append(list, input, checkUniqueness = true) {
-        const output = input.#output
+        const output = input._output
 
         if (!output) {
             throw new Error(
@@ -147,21 +148,21 @@ export class TxInput {
     /**
      * @overload
      * @param {boolean} expectFull
-     * @returns {(bytes: ByteArrayLike) => boolean}
+     * @returns {(bytes: BytesLike) => boolean}
      *
      * @overload
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @param {boolean} expectFull
      * @returns {boolean}
      *
-     * @param {[boolean] | [ByteArrayLike, boolean]} args
+     * @param {[boolean] | [BytesLike, boolean]} args
      */
     static isValidCbor(...args) {
         if (args.length == 1) {
             const [expectFull] = args
 
             /**
-             * @type {(bytes: ByteArrayLike) => boolean}
+             * @type {(bytes: BytesLike) => boolean}
              */
             return (bytes) => {
                 return TxInput.isValidCbor(bytes, expectFull)
@@ -215,8 +216,8 @@ export class TxInput {
      * @returns {TxOutput<CSpending, CStaking>}
      */
     get output() {
-        if (this.#output) {
-            return this.#output
+        if (this._output) {
+            return this._output
         } else {
             throw new Error("TxInput original output not synced")
         }
@@ -249,8 +250,8 @@ export class TxInput {
      * @param {{getUtxo(id: TxOutputId): Promise<TxInput>}} network
      */
     async recover(network) {
-        if (!this.#output) {
-            this.#output = (await network.getUtxo(this.id)).output
+        if (!this._output) {
+            this._output = (await network.getUtxo(this.id)).output
         }
     }
 
@@ -259,7 +260,7 @@ export class TxInput {
      * @returns {TxInput<CSpending, CStaking>}
      */
     copy() {
-        return new TxInput(this.id, this.#output?.copy())
+        return new TxInput(this.id, this._output?.copy())
     }
 
     /**
@@ -268,7 +269,7 @@ export class TxInput {
     dump() {
         return {
             outputId: this.id.toString(),
-            output: this.#output ? this.#output.dump() : null
+            output: this._output ? this._output.dump() : null
         }
     }
 
@@ -299,10 +300,10 @@ export class TxInput {
      * @returns {ConstrData}
      */
     toUplcData() {
-        if (this.#output) {
+        if (this._output) {
             return new ConstrData(0, [
                 this.id.toUplcData(),
-                this.#output.toUplcData()
+                this._output.toUplcData()
             ])
         } else {
             throw new Error("TxInput original output not synced")

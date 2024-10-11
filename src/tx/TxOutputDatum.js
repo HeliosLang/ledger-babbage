@@ -14,7 +14,7 @@ import { ConstrData, decodeUplcData } from "@helios-lang/uplc"
 import { DatumHash } from "../hashes/index.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  */
 
@@ -150,7 +150,7 @@ export class TxOutputDatum {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {TxOutputDatum}
      */
     static fromCbor(bytes) {

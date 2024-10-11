@@ -14,7 +14,7 @@ import { ByteStream } from "@helios-lang/codec-utils"
 import { None } from "@helios-lang/type-utils"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  */
 
 /**
@@ -95,7 +95,7 @@ export class PoolRelay {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {PoolRelay}
      */
     static fromCbor(bytes) {

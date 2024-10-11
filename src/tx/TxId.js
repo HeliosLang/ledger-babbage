@@ -3,13 +3,13 @@ import { bytesToHex, dummyBytes, toBytes } from "@helios-lang/codec-utils"
 import { ByteArrayData, ConstrData, decodeUplcData } from "@helios-lang/uplc"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("../hashes/index.js").Hash} Hash
  */
 
 /**
- * @typedef {TxId | ByteArrayLike} TxIdLike
+ * @typedef {TxId | BytesLike} TxIdLike
  */
 /**
  * Represents the hash of a transaction.
@@ -59,7 +59,7 @@ export class TxId {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {TxId}
      */
     static fromCbor(bytes) {
@@ -67,7 +67,7 @@ export class TxId {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {TxId}
      */
     static fromUplcCbor(bytes) {
@@ -85,7 +85,7 @@ export class TxId {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {boolean}
      */
     static isValid(bytes) {

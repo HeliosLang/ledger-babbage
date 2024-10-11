@@ -13,14 +13,7 @@ import {
 import { bytesToHex, toInt } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
 import { None, expectSome, isSome } from "@helios-lang/type-utils"
-import {
-    ByteArrayData,
-    ConstrData,
-    IntData,
-    ListData,
-    MapData
-} from "@helios-lang/uplc"
-import { DatumHash, PubKeyHash, ScriptHash } from "../hashes/index.js"
+import { PubKeyHash, ScriptHash } from "../hashes/index.js"
 import { Assets, Value } from "../money/index.js"
 import { NetworkParamsHelper } from "../params/index.js"
 import { TimeRange } from "../time/index.js"
@@ -33,7 +26,7 @@ import { TxOutputId } from "./TxOutputId.js"
 import { TxRedeemer } from "./TxRedeemer.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("../hashes/index.js").Hash} Hash
@@ -199,7 +192,7 @@ export class TxBody {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {TxBody}
      */
     static fromCbor(bytes) {
@@ -348,7 +341,7 @@ export class TxBody {
             collateralReturn: this.collateralReturn
                 ? this.collateralReturn.dump()
                 : null,
-            //totalCollateral: this.#totalCollateral.toString(), // doesn't seem to be used anymore
+            //totalCollateral: this.totalCollateral.toString(), // doesn't seem to be used anymore
             refInputs: this.refInputs.map((ri) => ri.dump())
         }
     }

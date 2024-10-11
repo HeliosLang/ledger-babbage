@@ -28,7 +28,7 @@ import { Address } from "./Address.js"
 import { TxOutputDatum } from "./TxOutputDatum.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("../money/index.js").ValueLike} ValueLike
  * @typedef {import("../params/index.js").NetworkParams} NetworkParams
@@ -107,7 +107,7 @@ export class TxOutput {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {TxOutput}
      */
     static fromCbor(bytes) {
@@ -204,7 +204,7 @@ export class TxOutput {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {boolean}
      */
     static isValidCbor(bytes) {

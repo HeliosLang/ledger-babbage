@@ -10,7 +10,7 @@ import { ByteStream } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  */
 
 /**
@@ -26,7 +26,7 @@ export class PoolMetadata {
 
     /**
      *
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      */
     static fromCbor(bytes) {
         const stream = ByteStream.from(bytes)

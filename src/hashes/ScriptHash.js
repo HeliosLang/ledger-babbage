@@ -3,7 +3,7 @@ import { compareBytes, dummyBytes, equalsBytes } from "@helios-lang/codec-utils"
 import { None, isSome } from "@helios-lang/type-utils"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/ledger-allegra").ScriptHashLike} ScriptHashLike
  * @typedef {import("./Hash.js").Hash} Hash
  */
@@ -20,7 +20,7 @@ export class ScriptHash extends ScriptHashAllegra {
     context
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @param {Option<C>} context
      */
     constructor(bytes, context) {

@@ -14,7 +14,7 @@ import {
 import { ByteStream } from "@helios-lang/codec-utils"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  */
 
 /**
@@ -27,7 +27,7 @@ import { ByteStream } from "@helios-lang/codec-utils"
  */
 
 /**
- * @param {ByteArrayLike} bytes
+ * @param {BytesLike} bytes
  * @returns {TxMetadataAttr}
  */
 export function decodeMetadataAttr(bytes) {

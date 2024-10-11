@@ -6,13 +6,13 @@ import { ByteArrayData, decodeUplcData } from "@helios-lang/uplc"
 import { ScriptHash } from "./ScriptHash.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("./Hash.js").Hash} Hash
  */
 
 /**
- * @typedef {MintingPolicyHash | ByteArrayLike} MintingPolicyHashLike
+ * @typedef {MintingPolicyHash | BytesLike} MintingPolicyHashLike
  */
 
 /**
@@ -31,7 +31,7 @@ import { ScriptHash } from "./ScriptHash.js"
 export class MintingPolicyHash extends ScriptHash {
     /**
      * Can be 0 bytes in case of Ada
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @param {Option<C>} context - not recommended to set this manually
      */
     constructor(bytes, context = None) {
@@ -64,7 +64,7 @@ export class MintingPolicyHash extends ScriptHash {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {MintingPolicyHash}
      */
     static fromCbor(bytes) {
@@ -89,7 +89,7 @@ export class MintingPolicyHash extends ScriptHash {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {MintingPolicyHash}
      */
     static fromUplcCbor(bytes) {

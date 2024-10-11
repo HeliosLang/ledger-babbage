@@ -17,7 +17,7 @@ import { handleAssetClassArgsWithQty, AssetClass } from "./AssetClass.js"
 import { Assets } from "./Assets.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("./Assets.js").AssetsLike} AssetsLike
@@ -82,13 +82,13 @@ export class Value {
     /**
      * @overload
      * @param {MintingPolicyHashLike} mph
-     * @param {ByteArrayLike} tokenName
+     * @param {BytesLike} tokenName
      * @param {IntLike} qty
      */
 
     /**
      * TODO: should this be moved into Assets?
-     * @param {[AssetClassLike, IntLike] | [MintingPolicyHashLike, ByteArrayLike, IntLike]} args
+     * @param {[AssetClassLike, IntLike] | [MintingPolicyHashLike, BytesLike, IntLike]} args
      * @returns {Value}
      */
     static fromAsset(...args) {
@@ -119,7 +119,7 @@ export class Value {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {Value}
      */
     static fromCbor(bytes) {
@@ -135,7 +135,7 @@ export class Value {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {Value}
      */
     static fromUplcCbor(bytes) {

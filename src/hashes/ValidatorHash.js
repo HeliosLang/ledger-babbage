@@ -5,13 +5,13 @@ import { ByteArrayData, decodeUplcData } from "@helios-lang/uplc"
 import { ScriptHash } from "./ScriptHash.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("./Hash.js").Hash} Hash
  */
 
 /**
- * @typedef {ValidatorHash | ByteArrayLike} ValidatorHashLike
+ * @typedef {ValidatorHash | BytesLike} ValidatorHashLike
  */
 
 /**
@@ -22,7 +22,7 @@ import { ScriptHash } from "./ScriptHash.js"
  */
 export class ValidatorHash extends ScriptHash {
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @param {Option<C>} context
      */
     constructor(bytes, context = None) {
@@ -55,7 +55,7 @@ export class ValidatorHash extends ScriptHash {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {ValidatorHash}
      */
     static fromCbor(bytes) {
@@ -71,7 +71,7 @@ export class ValidatorHash extends ScriptHash {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {ValidatorHash}
      */
     static fromUplcCbor(bytes) {

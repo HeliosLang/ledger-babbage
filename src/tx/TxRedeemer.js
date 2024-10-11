@@ -16,7 +16,7 @@ import { ScriptPurpose } from "./ScriptPurpose.js"
 import { UplcDataValue } from "@helios-lang/uplc"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("@helios-lang/uplc").Cost} Cost
@@ -136,7 +136,7 @@ export class TxRedeemer {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {TxRedeemer}
      */
     static fromCbor(bytes) {

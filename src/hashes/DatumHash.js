@@ -9,13 +9,13 @@ import { blake2b } from "@helios-lang/crypto"
 import { ByteArrayData, decodeUplcData } from "@helios-lang/uplc"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("./Hash.js").Hash} Hash
  */
 
 /**
- * @typedef {DatumHash | ByteArrayLike} DatumHashLike
+ * @typedef {DatumHash | BytesLike} DatumHashLike
  */
 
 /**
@@ -51,7 +51,7 @@ export class DatumHash {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {DatumHash}
      */
     static fromCbor(bytes) {
@@ -67,7 +67,7 @@ export class DatumHash {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {DatumHash}
      */
     static fromUplcCbor(bytes) {

@@ -12,7 +12,7 @@ import { PoolParameters } from "../pool/index.js"
 import { StakingCredential } from "./StakingCredential.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("../hashes/index.js").PubKeyHashLike} PubKeyHashLike
  * @typedef {import("./StakingCredential.js").StakingCredentialLike} StakingCredentialLike
@@ -125,7 +125,7 @@ export class DCert {
 
     /**
      *
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      */
     static fromCbor(bytes) {
         const stream = ByteStream.from(bytes)

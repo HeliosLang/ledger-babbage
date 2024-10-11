@@ -17,7 +17,7 @@ import { PoolMetadata } from "./PoolMetadata.js"
 import { PoolRelay } from "./PoolRelay.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  */
 
 /**
@@ -115,7 +115,7 @@ export class PoolParameters {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      */
     static fromCbor(bytes) {
         const stream = ByteStream.from(bytes)

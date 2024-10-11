@@ -23,7 +23,7 @@ import {
 } from "./AssetClass.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").ByteArrayLike} ByteArrayLike
+ * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
  * @typedef {import("./AssetClass.js").AssetClassLike} AssetClassLike
  * @typedef {import("../hashes/MintingPolicyHash.js").MintingPolicyHashLike} MintingPolicyHashLike
@@ -31,7 +31,7 @@ import {
 
 /**
  * @typedef {[
- *     ByteArrayLike,
+ *     BytesLike,
  *     IntLike
  * ][] | Record<string, IntLike>} TokensLike
  */
@@ -109,7 +109,7 @@ export class Assets {
     }
 
     /**
-     * @param {ByteArrayLike} bytes
+     * @param {BytesLike} bytes
      * @returns {Assets}
      */
     static fromCbor(bytes) {
@@ -157,13 +157,13 @@ export class Assets {
     /**
      * @overload
      * @param {MintingPolicyHashLike} mph
-     * @param {ByteArrayLike} tokenName
+     * @param {BytesLike} tokenName
      * @param {IntLike} qty
      */
 
     /**
      * Mutates 'this'.
-     * @param {[AssetClassLike, IntLike] | [MintingPolicyHashLike, ByteArrayLike, IntLike]} args
+     * @param {[AssetClassLike, IntLike] | [MintingPolicyHashLike, BytesLike, IntLike]} args
      */
     addComponent(...args) {
         const [mph, tokenName, qty] = handleAssetClassArgsWithQty(...args)
@@ -195,7 +195,7 @@ export class Assets {
      * Mutates 'this'.
      * Throws error if mph is already contained in 'this'.
      * @param {MintingPolicyHashLike} mph
-     * @param {[ByteArrayLike, IntLike][]} tokens
+     * @param {[BytesLike, IntLike][]} tokens
      */
     addTokens(mph, tokens) {
         const mph_ = MintingPolicyHash.new(mph)
@@ -328,10 +328,10 @@ export class Assets {
      *
      * @overload
      * @param {MintingPolicyHashLike} mph
-     * @param {ByteArrayLike} tokenName
+     * @param {BytesLike} tokenName
      * @returns {bigint}
      *
-     * @param {[AssetClassLike] | [MintingPolicyHashLike, ByteArrayLike]} args
+     * @param {[AssetClassLike] | [MintingPolicyHashLike, BytesLike]} args
      * @returns {bigint}
      */
     getQuantity(...args) {
@@ -394,10 +394,10 @@ export class Assets {
      *
      * @overload
      * @param {MintingPolicyHashLike} mph
-     * @param {ByteArrayLike} tokenName
+     * @param {BytesLike} tokenName
      * @returns {boolean}
      *
-     * @param {[AssetClassLike] | [MintingPolicyHashLike, ByteArrayLike]} args
+     * @param {[AssetClassLike] | [MintingPolicyHashLike, BytesLike]} args
      * @returns {boolean}
      */
     has(...args) {
