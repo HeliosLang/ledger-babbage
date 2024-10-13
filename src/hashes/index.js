@@ -12,8 +12,19 @@ export { ValidatorHash } from "./ValidatorHash.js"
  * @typedef {import("./MintingPolicyHash.js").MintingPolicyHashLike} MintingPolicyHashLike
  * @typedef {import("./PubKeyHash.js").PubKeyHashLike} PubKeyHashLike
  * @typedef {import("./ScriptHash.js").ScriptHashLike} ScriptHashLike
- * @typedef {import("./StakingHash.js").StakingHashKind} StakingHashKind
  * @typedef {import("./StakingHash.js").StakingHashLike} StakingHashLike
  * @typedef {import("./StakingValidatorHash.js").StakingValidatorHashLike} StakingValidatorHashLike
  * @typedef {import("./ValidatorHash.js").ValidatorHashLike} ValidatorHashLike
+ */
+
+/**
+ * @template C
+ * @template P
+ * @template V
+ * @typedef {import("./StakingHash.js").StakingPubKeyOrValidator<C, P, V>} StakingPubKeyOrValidator
+ */
+
+/**
+ * @template [Context=unknown]
+ * @typedef {import("./StakingHash.js").StakingHashI<Context>} StakingHashI
  */

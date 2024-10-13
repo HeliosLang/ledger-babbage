@@ -10,7 +10,7 @@ describe(StakingCredential.name, () => {
 
         /**
          * unwitnessed
-         * @satisfies {StakingCredential<"PubKey", null>}
+         * @satisfies {StakingCredential<null>}
          */
         const unwitnessed = StakingCredential.new(unwitnessedPkh)
 
@@ -19,7 +19,7 @@ describe(StakingCredential.name, () => {
 
         /**
          * witnessed by NativeScript
-         * @satisfies {StakingCredential<"Validator", null>}
+         * @satisfies {StakingCredential<null>}
          */
         const witnessedByNative = StakingCredential.new(unwitnessedVh)
 
@@ -27,7 +27,7 @@ describe(StakingCredential.name, () => {
 
         /**
          * default, unwitnessed or witnessed
-         * @satisfies {StakingCredential<"Validator", unknown>}
+         * @satisfies {StakingCredential<unknown>}
          */
         const witnessedOrUnwitnessed = StakingCredential.new(
             witnessedOrUnwitnessedVh
@@ -40,7 +40,7 @@ describe(StakingCredential.name, () => {
 
         /**
          * StakingCredential<{...}> (witnessed by UplcProgram)
-         * @satisfies {StakingCredential<"Validator", {program: UplcProgramV2}>}
+         * @satisfies {StakingCredential<{program: UplcProgramV2}>}
          */
         const witnessed = StakingCredential.new(witnessedVh)
     })

@@ -6,7 +6,7 @@ export { ScriptPurpose } from "./ScriptPurpose.js"
 export { Signature } from "./Signature.js"
 export { SpendingCredential } from "./SpendingCredential.js"
 export { StakingCredential } from "./StakingCredential.js"
-export { StakingAddress } from "./StakingAddress.js"
+export { StakingAddress, makeStakingAddress } from "./StakingAddress.js"
 export { Tx, calcScriptDataHash } from "./Tx.js"
 export { TxBody } from "./TxBody.js"
 export { TxId } from "./TxId.js"
@@ -45,6 +45,11 @@ export { TxWitnesses } from "./TxWitnesses.js"
  * @template TRedeemerStrict
  * @template TRedeemerPermissive
  * @typedef {import("./SpendingContext.js").SpendingContext<TDatumStrict, TDatumPermissive, TRedeemerStrict, TRedeemerPermissive>} SpendingContext
+ */
+
+/**
+ * @template [Context=unknown]
+ * @typedef {import("./StakingAddress.js").StakingAddressI<Context>} StakingAddressI
  */
 
 /**

@@ -3,14 +3,18 @@ import { ConstrData } from "@helios-lang/uplc"
 import {
     PubKeyHash,
     StakingHash,
-    StakingValidatorHash,
-    ValidatorHash
+    StakingValidatorHash
 } from "../hashes/index.js"
 
 /**
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
- * @typedef {import("../hashes/index.js").StakingHashKind} StakingHashKind
+ * @typedef {import("@helios-lang/uplc").ConstrDataI} ConstrDataI
  * @typedef {import("../hashes/index.js").StakingHashLike} StakingHashLike
+ */
+
+/**
+ * @template [Context=unknown]
+ * @typedef {import("../hashes/index.js").StakingHashI<Context>} StakingHashI
  */
 
 /**
@@ -18,19 +22,30 @@ import {
  */
 
 /**
+ * @template [Context=unknown]
+ * @typedef {{
+ *   bytes: number[]
+ *   context: Context
+ *   hash: StakingHashI<Context>
+ *   toCbor(): number[]
+ *   toUplcData(): ConstrDataI
+ * }} StakingCredentialI
+ */
+
+/**
  * TODO: implement support for staking pointers
- * @template {StakingHashKind} [K=StakingHashKind]
  * @template [C=unknown] - optional context
+ * @implements {StakingCredentialI<C>}
  */
 export class StakingCredential {
     /**
      * @readonly
-     * @type {StakingHash<K, C>}
+     * @type {StakingHashI<C>}
      */
     hash
 
     /**
-     * @param {StakingHash<K, C>} hash
+     * @param {StakingHashI<C>} hash
      */
     constructor(hash) {
         this.hash = hash
@@ -40,10 +55,14 @@ export class StakingCredential {
      * @template {StakingCredentialLike} T
      * @param {T} arg
      * @returns {(
-     *   T extends StakingCredential<infer K, infer C> ? StakingCredential<K, C> :
-     *   T extends StakingHash<infer K, infer C> ? StakingCredential<K, C> :
-     *   T extends PubKeyHash ? StakingCredential<"PubKey", null> :
-     *   T extends ValidatorHash<infer C> ? StakingCredential<"Validator", C> :
+     *   T extends StakingCredential<infer C> ?
+     *     StakingCredential<C> :
+     *   T extends StakingHash<infer C> ?
+     *     StakingCredential<C> :
+     *   T extends PubKeyHash ?
+     *     StakingCredential<null> :
+     *   T extends StakingValidatorHash<infer C> ?
+     *     StakingCredential<C> :
      *   StakingCredential
      * )}
      */
@@ -67,7 +86,7 @@ export class StakingCredential {
      * @template [C=unknown]
      * @param {number[]} bytes
      * @param {Option<C>} context
-     * @returns {Option<StakingCredential>}
+     * @returns {Option<StakingCredential<C>>}
      */
     static fromAddressBytes(bytes, context = None) {
         if (bytes.length > 29) {
@@ -78,8 +97,14 @@ export class StakingCredential {
             switch (type) {
                 case 0:
                 case 1:
-                    return new StakingCredential(
-                        StakingHash.PubKey(new PubKeyHash(body))
+                    if (context !== null) {
+                        throw new Error("expected null context for PubKey")
+                    }
+
+                    return /** @type {any} */ (
+                        new StakingCredential(
+                            StakingHash.PubKey(new PubKeyHash(body))
+                        )
                     )
                 case 2:
                 case 3:
@@ -120,10 +145,15 @@ export class StakingCredential {
     }
 
     /**
-     * @returns {StakingHash<K, C>}
+     * TODO: get rid of this method
+     * @returns {StakingHash<C>}
      */
     expectStakingHash() {
-        return this.hash
+        if (this.hash instanceof StakingHash) {
+            return this.hash
+        } else {
+            throw new Error("not an instance of StakingHash")
+        }
     }
 
     /**
@@ -140,5 +170,89 @@ export class StakingCredential {
      */
     toUplcData() {
         return new ConstrData(0, [this.hash.toUplcData()])
+    }
+}
+
+/**
+ * @template [Context=unknown]
+ * @overload
+ * @param {{
+ *   hash: StakingHashI<Context>
+ * }} args
+ * @returns {StakingCredentialI<Context>}
+ */
+/**
+ * @template [Context=unknown]
+ * @overload
+ * @param {{
+ *   bytes: number[]
+ *   context?: Context
+ * }} args
+ * @returns {Option<StakingCredentialI<Context>>}
+ */
+/**
+ * @template [Context=unknown]
+ * @overload
+ * @param {{
+ *   uplcData: UplcData
+ *   context?: Context
+ * }} args
+ * @returns {StakingCredentialI<Context>}
+ */
+/**
+ * @template [Context=unknown]
+ * @param {({
+ *   hash: StakingHashI<Context>
+ * } | {
+ *   bytes: number[]
+ *   context?: Context
+ * } | {
+ *   uplcData: UplcData
+ *   context?: Context
+ * })} args
+ * @returns {Option<StakingCredentialI<Context>>}
+ */
+export function makeStakingCredential(args) {
+    if ("hash" in args) {
+        return new StakingCredential(args.hash)
+    } else if ("bytes" in args) {
+        const bytes = args.bytes
+        const context = args.context
+
+        if (bytes.length > 29) {
+            const head = bytes[0]
+            const body = bytes.slice(29, 57)
+            const type = head >> 4
+
+            switch (type) {
+                case 0:
+                case 1:
+                    if (context !== null) {
+                        throw new Error("expected null context for PubKey")
+                    }
+
+                    return /** @type {any} */ (
+                        new StakingCredential(
+                            StakingHash.PubKey(new PubKeyHash(body))
+                        )
+                    )
+                case 2:
+                case 3:
+                    return new StakingCredential(
+                        StakingHash.Validator(
+                            new StakingValidatorHash(body, context)
+                        )
+                    )
+                default:
+                    throw new Error(`unhandled StakingCredential type ${type}`)
+            }
+        } else {
+            return None
+        }
+    } else if ("uplcData" in args) {
+        const data = args.uplcData
+        ConstrData.assert(data, 0, 1)
+
+        return new StakingCredential(StakingHash.fromUplcData(data.fields[0]))
     }
 }

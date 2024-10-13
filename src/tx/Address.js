@@ -15,8 +15,12 @@ import { StakingCredential } from "./StakingCredential.js"
 /**
  * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
- * @typedef {import("../hashes/index.js").StakingHashKind} StakingHashKind
  * @typedef {import("./SpendingCredential.js").SpendingCredentialKind} SpendingCredentialKind
+ */
+
+/**
+ * @template [Context=unknown]
+ * @typedef {import("../hashes/index.js").StakingHashI<Context>} StakingHashI
  */
 
 /**
@@ -164,14 +168,20 @@ export class Address {
      * @param {Option<TStaking>} stakingHash
      * @returns {(
      *   TSpending extends PubKeyHash ? (
-     *     TStaking extends PubKeyHash ? Address<null, null> :
-     *     TStaking extends StakingValidatorHash<infer CStaking> ? Address<null, CStaking> :
-     *     Address<null, unknown>
-     *   ) : TSpending extends ValidatorHash<infer CSpending> ? (
-     *     TStaking extends PubKeyHash ? Address<CSpending, null> :
-     *     TStaking extends StakingValidatorHash<infer CStaking> ? Address<CSpending, CStaking> :
-     *     Address<CSpending, unknown>
-     *   ) : Address
+     *     TStaking extends PubKeyHash ?
+     *       Address<null, null> :
+     *     TStaking extends StakingValidatorHash<infer CStaking> ?
+     *       Address<null, CStaking> :
+     *       Address<null, unknown>
+     *   ) :
+     *   TSpending extends ValidatorHash<infer CSpending> ? (
+     *     TStaking extends PubKeyHash ?
+     *       Address<CSpending, null> :
+     *     TStaking extends StakingValidatorHash<infer CStaking> ?
+     *       Address<CSpending, CStaking> :
+     *       Address<CSpending, unknown>
+     *   ) :
+     *     Address
      * )}
      */
     static fromHashes(isMainnet, spendingHash, stakingHash) {
@@ -389,7 +399,7 @@ export class Address {
     }
 
     /**
-     * @type {Option<StakingCredential<StakingHashKind, CStaking>>}
+     * @type {Option<StakingCredential<CStaking>>}
      */
     get stakingCredential() {
         return StakingCredential.fromAddressBytes(
@@ -399,7 +409,7 @@ export class Address {
     }
 
     /**
-     * @type {Option<StakingHash<StakingHashKind, CStaking>>}
+     * @type {Option<StakingHashI<CStaking>>}
      */
     get stakingHash() {
         return this.stakingCredential ? this.stakingCredential.hash : None

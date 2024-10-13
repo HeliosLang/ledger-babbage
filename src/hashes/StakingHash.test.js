@@ -11,7 +11,7 @@ describe(StakingHash.name, () => {
 
         /**
          * unwitnessed
-         * @satisfies {StakingHash<"PubKey", null>}
+         * @satisfies {StakingHash<null>}
          */
         const unwitnessed = StakingHash.new(unwitnessedPkh)
 
@@ -21,17 +21,17 @@ describe(StakingHash.name, () => {
 
         /**
          * witnessed by NativeScript
-         * @satisfies {StakingHash<"Validator", null>}
+         * @satisfies {StakingHash<null>}
          */
-        const witnessedByNative = StakingHash.new(unwitnessedVh)
+        StakingHash.new(unwitnessedVh)
 
         const witnessedOrUnwitnessedVh = new StakingValidatorHash(dummyBytes)
 
         /**
          * default, unwitnessed or witnessed
-         * @satisfies {StakingHash<"Validator", unknown>}
+         * @satisfies {StakingHash<unknown>}
          */
-        const witnessedOrUnwitnessed = StakingHash.new(witnessedOrUnwitnessedVh)
+        StakingHash.new(witnessedOrUnwitnessedVh)
 
         const dummyProgram = new UplcProgramV2(new UplcConst(new UplcInt(0)))
         const witnessedVh = new StakingValidatorHash(dummyBytes, {
@@ -40,9 +40,9 @@ describe(StakingHash.name, () => {
 
         /**
          * StakingHash<{...}> (witnessed by UplcProgram)
-         * @type {StakingHash<"Validator", {program: UplcProgramV2}>}
+         * @type {StakingHash<{program: UplcProgramV2}>}
          */
-        const witnessed = StakingHash.new(witnessedVh)
+        StakingHash.new(witnessedVh)
     })
 
     it("StakingHash.dummy() returns PubKeyHash with all 0s for default arg", () => {

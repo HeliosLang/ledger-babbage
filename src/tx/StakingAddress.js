@@ -6,6 +6,7 @@ import {
     toBytes
 } from "@helios-lang/codec-utils"
 import { decodeBech32, encodeBech32 } from "@helios-lang/crypto"
+import { None } from "@helios-lang/type-utils"
 import { ConstrData } from "@helios-lang/uplc"
 import {
     PubKeyHash,
@@ -19,12 +20,41 @@ import { StakingCredential } from "./StakingCredential.js"
 /**
  * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
+ * @typedef {import("@helios-lang/uplc").ConstrDataI} ConstrDataI
  * @typedef {import("../hashes/index.js").StakingHashLike} StakingHashLike
  * @typedef {import("./StakingCredential.js").StakingCredentialLike} StakingCredentialLike
  */
 
 /**
+ * @template C
+ * @template P
+ * @template V
+ * @typedef {import("../hashes/index.js").StakingPubKeyOrValidator<C, P, V>} StakingPubKeyOrValidator
+ */
+
+/**
+ * @template [Context=unknown]
+ * @typedef {import("../hashes/index.js").StakingHashI<Context>} StakingHashI
+ */
+
+/**
  * @typedef {StakingAddress | BytesLike | Address | StakingCredential | PubKeyHash | ValidatorHash} StakingAddressLike
+ */
+
+/**
+ * @template [Context=unknown]
+ * @typedef {{
+ *   kind: "StakingAddress"
+ *   bytes: number[]
+ *   context: Context
+ *   stakingHash: StakingHashI<Context>
+ *   isEqual(other: StakingAddress): boolean
+ *   isForMainnet(): boolean
+ *   toBech32(): string
+ *   toCbor(): number[]
+ *   toHex(): string
+ *   toUplcData(): ConstrDataI
+ * }} StakingAddressI
  */
 
 /**
@@ -35,6 +65,8 @@ import { StakingCredential } from "./StakingCredential.js"
  * Staking addresses are used to query the assets held by given staking credentials.
  *
  * TODO: handle staking pointers?
+ * @template [Context=unknown] - staking can have a context with a program and a redeemer
+ * @implements {StakingAddressI<Context>}
  */
 export class StakingAddress {
     /**
@@ -44,15 +76,26 @@ export class StakingAddress {
     bytes
 
     /**
-     * @param {BytesLike} bytes
+     * @readonly
+     * @type {Context}
      */
-    constructor(bytes) {
+    context
+
+    /**
+     * @param {BytesLike} bytes
+     * @param {Option<Context>} context
+     */
+    constructor(bytes, context = None) {
         this.bytes = toBytes(bytes)
 
         if (this.bytes.length != 29) {
             throw new Error(
                 `expected 29 bytes for StakingAddress, got ${this.bytes.length} bytes`
             )
+        }
+
+        if (context) {
+            this.context = context
         }
     }
 
@@ -87,14 +130,20 @@ export class StakingAddress {
     /**
      * Convert a regular `Address` into a `StakingAddress`.
      * Throws an error if the Address doesn't have a staking credential.
-     * @param {Address} addr
-     * @returns {StakingAddress}
+     * @template C
+     * @param {Address<any, C>} addr
+     * @returns {StakingAddress<C>}
      */
     static fromAddress(addr) {
         const sh = addr.stakingHash
 
         if (sh) {
-            return StakingAddress.fromHash(addr.isForMainnet(), sh)
+            return /** @type {any} */ (
+                StakingAddress.fromHash(
+                    addr.isForMainnet(),
+                    /** @type {any} */ (sh)
+                )
+            )
         } else {
             throw new Error("address doesn't have a staking part")
         }
@@ -125,28 +174,52 @@ export class StakingAddress {
     }
 
     /**
+     * @template {StakingCredentialLike} [TCredential=StakingCredentialLike]
      * @param {boolean} isMainnet
-     * @param {StakingCredentialLike} stakingCredential
-     * @returns {StakingAddress}
+     * @param {TCredential} stakingCredential
+     * @returns {(
+     *   TCredential extends StakingCredential<any, infer CStaking> ?
+     *     StakingAddress<CStaking> :
+     *   TCredential extends PubKeyHash ?
+     *     StakingAddress<null> :
+     *   TCredential extends StakingHash<any, infer CStaking> ?
+     *     StakingAddress<CStaking> :
+     *   TCredential extends StakingValidatorHash<infer CStaking> ?
+     *     StakingAddress<CStaking> :
+     *     StakingAddress
+     * )}
      */
     static fromCredential(isMainnet, stakingCredential) {
         const sh = StakingCredential.new(stakingCredential).expectStakingHash()
-        return StakingAddress.fromHash(isMainnet, sh)
+        return /** @type {any} */ (StakingAddress.fromHash(isMainnet, sh))
     }
 
     /**
      * Converts a `PubKeyHash` or `StakingValidatorHash` into `StakingAddress`.
+     * @template {StakingHashLike} [TStaking=StakingHashLike]
      * @param {boolean} isMainnet
      * @param {StakingHashLike} hash
-     * @returns {StakingAddress}
+     * @returns {(
+     *   TStaking extends PubKeyHash ?
+     *     StakingAddress<null> :
+     *   TStaking extends StakingHash<any, infer CStaking> ?
+     *     StakingAddress<CStaking> :
+     *   TStaking extends StakingValidatorHash<infer CStaking> ?
+     *     StakingAddress<CStaking> :
+     *     StakingAddress<unknown>
+     * )}
      */
     static fromHash(isMainnet, hash) {
         const hash_ = StakingHash.new(hash).hash
 
         if (hash_ instanceof PubKeyHash) {
-            return StakingAddress.fromPubKeyHash(isMainnet, hash_)
+            return /** @type {any} */ (
+                StakingAddress.fromPubKeyHash(isMainnet, hash_)
+            )
         } else {
-            return StakingAddress.fromStakingValidatorHash(isMainnet, hash_)
+            return /** @type {any} */ (
+                StakingAddress.fromStakingValidatorHash(isMainnet, hash_)
+            )
         }
     }
 
@@ -155,7 +228,7 @@ export class StakingAddress {
      * @private
      * @param {boolean} isMainnet
      * @param {PubKeyHash} hash
-     * @returns {StakingAddress}
+     * @returns {StakingAddress<null>}
      */
     static fromPubKeyHash(isMainnet, hash) {
         return new StakingAddress([isMainnet ? 0xe1 : 0xe0].concat(hash.bytes))
@@ -164,12 +237,16 @@ export class StakingAddress {
     /**
      * Address with only staking part (script StakingValidatorHash)
      * @private
+     * @template [C=unknown]
      * @param {boolean} isMainnet
-     * @param {StakingValidatorHash} hash
-     * @returns {StakingAddress}
+     * @param {StakingValidatorHash<C>} hash
+     * @returns {StakingAddress<C>}
      */
     static fromStakingValidatorHash(isMainnet, hash) {
-        return new StakingAddress([isMainnet ? 0xf1 : 0xf0].concat(hash.bytes))
+        return new StakingAddress(
+            [isMainnet ? 0xf1 : 0xf0].concat(hash.bytes),
+            hash.context
+        )
     }
 
     /**
@@ -214,17 +291,28 @@ export class StakingAddress {
     }
 
     /**
+     * @type {"StakingAddress"}
+     */
+    get kind() {
+        return "StakingAddress"
+    }
+
+    /**
      * Returns the underlying `StakingHash`.
-     * @returns {StakingHash}
+     * @type {StakingHash<Context>}
      */
     get stakingHash() {
         const type = this.bytes[0]
 
         if (type == 0xe0 || type == 0xe1) {
-            return StakingHash.PubKey(new PubKeyHash(this.bytes.slice(1)))
+            return /** @type {any} */ (
+                StakingHash.PubKey(new PubKeyHash(this.bytes.slice(1)))
+            )
         } else if (type == 0xf0 || type == 0xf1) {
-            return StakingHash.Validator(
-                new StakingValidatorHash(this.bytes.slice(1))
+            return /** @type {any} */ (
+                StakingHash.Validator(
+                    new StakingValidatorHash(this.bytes.slice(1), this.context)
+                )
             )
         } else {
             throw new Error("bad StakingAddress header")
@@ -265,10 +353,12 @@ export class StakingAddress {
 
     /**
      * StakingAddress is represented as StakingCredential on-chain
-     * @returns {StakingCredential}
+     * @returns {StakingCredential<Context>}
      */
     toCredential() {
-        return StakingCredential.new(this.stakingHash)
+        return /** @type {any} */ (
+            StakingCredential.new(/** @type {any} */ (this.stakingHash))
+        )
     }
 
     /**
@@ -285,4 +375,208 @@ export class StakingAddress {
     toUplcData() {
         return this.toCredential().toUplcData()
     }
+}
+
+/**
+ * @template [Context=unknown]
+ * @overload
+ * @param {{
+ *   bytes: BytesLike
+ *   context?: Context
+ * }} args
+ * @returns {StakingAddressI<Context>}
+ */
+/**
+ * @template [Context=unknown]
+ * @overload
+ * @param {{
+ *   address: Address<any, Context>
+ * }} args
+ * @returns {StakingAddressI<Context>}
+ */
+/**
+ * @template [Context=unknown]
+ * @overload
+ * @param {{
+ *   credential: StakingCredential<Context>
+ *   isMainnet: boolean
+ * }} args
+ * @returns {StakingAddressI<Context>}
+ */
+/**
+ * @overload
+ * @param {{
+ *   hash: PubKeyHash
+ *   isMainnet: boolean
+ * }} args
+ * @returns {StakingAddressI<null>}
+ */
+/**
+ * @template [Context=unknown]
+ * @overload
+ * @param {{
+ *   hash: StakingValidatorHash<Context>
+ *   isMainnet: boolean
+ * }} args
+ * @returns {StakingAddressI<Context>}
+ */
+/**
+ * @template [Context=unknown]
+ * @overload
+ * @param {{
+ *   hash: StakingHashI<Context>
+ *   isMainnet: boolean
+ * }} args
+ * @returns {StakingAddressI<Context>}
+ */
+/**
+ * A dummy StakingAddress is always for testnet
+ * @overload
+ * @param {{
+ *   dummy: number
+ * }} args
+ * @returns {StakingAddressI<null>}
+ */
+/**
+ * @tempate [Context=unknown]
+ * @overload
+ * @param {{
+ *   bech32: string
+ *   context?: Context
+ * }} args
+ * @returns {StakingAddressI<Context>}
+ */
+/**
+ * @template [Context=unknown]
+ * @overload
+ * @param {{
+ *   cbor: BytesLike
+ *   context?: Context
+ * }} args
+ * @returns {StakingAddressI<Context>}
+ */
+/**
+ * @template [Context=unknown]
+ * @overload
+ * @param {{
+ *   uplcData: UplcData
+ *   context?: Context
+ *   isMainnet: boolean
+ * }} args
+ * @returns {StakingAddressI<Context>}
+ */
+/**
+ * @template [CStaking=unknown]
+ * @param {({
+ *   bytes: BytesLike
+ *   context?: CStaking
+ * } | {
+ *   address: Address<any, CStaking>
+ * } | {
+ *   credential: StakingCredential<CStaking>
+ *   isMainnet: boolean
+ * } | {
+ *   hash: StakingHashI<CStaking> | StakingPubKeyOrValidator<CStaking, PubKeyHash, StakingValidatorHash<CStaking>>
+ *   isMainnet: boolean
+ * } | {
+ *   dummy: number
+ * } | {
+ *   bech32: string
+ *   context?: CStaking
+ * } | {
+ *   cbor: BytesLike
+ *   context?: CStaking
+ * } | {
+ *   uplcData: UplcData
+ *   isMainnet: boolean
+ * })} args
+ * @returns {StakingAddressI<CStaking>}
+ */
+export function makeStakingAddress(args) {
+    if ("bytes" in args) {
+        return new StakingAddress(args.bytes, args.context)
+    } else if ("address" in args) {
+        const hash = args.address.stakingHash
+
+        if (!hash) {
+            throw new Error("Address doesn't have a staking part")
+        }
+
+        return makeStakingAddress({
+            isMainnet: args.address.isForMainnet(),
+            hash
+        })
+    } else if ("credential" in args) {
+        return makeStakingAddress({
+            isMainnet: args.isMainnet,
+            hash: args.credential.hash
+        })
+    } else if ("hash" in args) {
+        const h = args.hash
+
+        if (h instanceof PubKeyHash) {
+            return new StakingAddress(
+                [args.isMainnet ? 0xe1 : 0xe0].concat(h.bytes)
+            )
+        } else if (h instanceof StakingValidatorHash) {
+            return new StakingAddress(
+                [args.isMainnet ? 0xf1 : 0xf0].concat(h.bytes),
+                h.context
+            )
+        } else if (h instanceof StakingHash) {
+            return /** @type {any} */ (
+                makeStakingAddress({
+                    isMainnet: args.isMainnet,
+                    hash: /** @type {any} */ (h.hash)
+                })
+            )
+        } else {
+            throw new Error("unexpected Staking hash type")
+        }
+    } else if ("dummy" in args) {
+        return /** @type {any} */ (
+            makeStakingAddress({
+                hash: /** @type {any} */ (PubKeyHash.dummy(args.dummy)),
+                isMainnet: false
+            })
+        )
+    } else if ("bech32" in args) {
+        const [prefix, bytes] = decodeBech32(args.bech32)
+
+        const result = new StakingAddress(bytes, args.context)
+
+        if (prefix != result.bech32Prefix) {
+            throw new Error("invalid StakingAddress prefix")
+        }
+
+        return result
+    } else if ("cbor" in args) {
+        return decodeStakingAddressCbor(args.cbor, args.context)
+    } else if ("uplcData" in args) {
+        return decodeStakingAddressUplcData(args.isMainnet, args.uplcData)
+    } else {
+        throw new Error("invalid makeStakingAddress() arguments")
+    }
+}
+
+/**
+ * @template [Context=unknown]
+ * @param {BytesLike} bytes
+ * @param {Option<Context>} context
+ * @returns {StakingAddressI<Context>}
+ */
+export function decodeStakingAddressCbor(bytes, context = None) {
+    return new StakingAddress(decodeBytes(bytes), context)
+}
+
+/**
+ * @template [Context=unknown]
+ * @param {boolean} isMainnet
+ * @param {UplcData} data
+ * @returns {StakingAddressI<Context>}
+ */
+function decodeStakingAddressUplcData(isMainnet, data) {
+    const stakingCredential = StakingCredential.fromUplcData(data)
+    const sh = stakingCredential.expectStakingHash()
+    return makeStakingAddress({ isMainnet: isMainnet, hash: sh })
 }
