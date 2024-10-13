@@ -159,7 +159,7 @@ export class DCert {
      */
 
     /**
-     * @type {T extends DCertKindWithCredential ? StakingCredential : T extends Exclude<DCertKind, DCertKindWithCredential> ? never : Option<StakingCredential>}
+     * @type {T extends DCertKindWithCredential ? StakingCredential<unknown> : T extends Exclude<DCertKind, DCertKindWithCredential> ? never : Option<StakingCredential<unknown>>}
      */
     get credential() {
         return /** @type {any} */ (

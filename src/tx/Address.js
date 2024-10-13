@@ -445,7 +445,7 @@ export class Address {
     }
 
     /**
-     * @param {Address} other
+     * @param {Address<any, any>} other
      * @returns {boolean}
      */
     isEqual(other) {

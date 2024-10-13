@@ -276,7 +276,7 @@ export class TxInput {
     }
 
     /**
-     * @param {TxInput} other
+     * @param {TxInput<any, any>} other
      * @returns {boolean}
      */
     isEqual(other) {
