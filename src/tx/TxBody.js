@@ -273,6 +273,14 @@ export class TxBody {
 
         this.minted.getPolicies().forEach((mph) => m.set(mph.toHex(), mph))
 
+        this.withdrawals.forEach(([stakingAddr]) => {
+            const svh = stakingAddr.stakingHash.stakingValidatorHash
+
+            if (svh) {
+                m.set(svh.toHex(), svh)
+            }
+        })
+
         return Array.from(m.values())
     }
 

@@ -822,7 +822,9 @@ export class Tx {
         const requiredScriptHashes = this.body.allScriptHashes
 
         if (requiredScriptHashes.length < includedScriptHashes.size) {
-            throw new Error("too many scripts included, not all are needed")
+            throw new Error(
+                `too many scripts included, not all are needed (${includedScriptHashes.size} included, but only ${requiredScriptHashes.length} required)`
+            )
         }
 
         requiredScriptHashes.forEach((hash) => {
