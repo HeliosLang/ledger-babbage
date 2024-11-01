@@ -382,9 +382,13 @@ export class Tx {
 
         this.validateWithdrawalsOrder()
 
+        // TODO: validateDCertsOrder ??
+
         this.validateMetadata()
 
         this.validateScriptDataHash(params)
+
+        // TODO: add the rule that the total refScripts size in the inputs and ref inputs can't exceed 204800
     }
 
     /**

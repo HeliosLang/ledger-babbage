@@ -96,6 +96,14 @@ export class ScriptContextV2 {
                             ).toUplcData(),
                             redeemer.data
                         ]
+                    } else if (redeemer.isCertifying()) {
+                        return [
+                            ScriptPurpose.Certifying(
+                                redeemer,
+                                dcerts[redeemer.index]
+                            ).toUplcData(),
+                            redeemer.data
+                        ]
                     } else {
                         throw new Error(
                             `unhandled TxRedeemer kind ${redeemer.kind}`

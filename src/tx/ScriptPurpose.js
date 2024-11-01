@@ -1,5 +1,6 @@
 import { ConstrData } from "@helios-lang/uplc"
 import { MintingPolicyHash } from "../hashes/index.js"
+import { DCert } from "./DCert.js"
 import { StakingCredential } from "./StakingCredential.js"
 import { TxOutputId } from "./TxOutputId.js"
 import { TxRedeemer } from "./TxRedeemer.js"
@@ -24,6 +25,8 @@ import { TxRedeemer } from "./TxRedeemer.js"
  *   outputId: TxOutputId
  * } : T extends "Rewarding" ? {
  *   credential: StakingCredential
+ * } : T extends "Certifying" ? {
+ *   dcert: DCert
  * } : never} ScriptPurposeProps
  */
 
@@ -89,6 +92,17 @@ export class ScriptPurpose {
     }
 
     /**
+     * @param {TxRedeemer<"Certifying">} redeemer
+     * @param {DCert} dcert
+     * @returns {ScriptPurpose<"Certifying">}
+     */
+    static Certifying(redeemer, dcert) {
+        return new ScriptPurpose(redeemer, {
+            dcert
+        })
+    }
+
+    /**
      * @returns {this is ScriptPurpose<"Minting">}
      */
     isMinting() {
@@ -110,6 +124,13 @@ export class ScriptPurpose {
     }
 
     /**
+     * @returns {this is ScriptPurpose<"Certifying">}
+     */
+    isCertifying() {
+        return this.redeemer.isCertifying()
+    }
+
+    /**
      * @returns {ConstrData}
      */
     toUplcData() {
@@ -119,6 +140,8 @@ export class ScriptPurpose {
             return new ConstrData(1, [this.props.outputId.toUplcData()])
         } else if (this.isRewarding()) {
             return new ConstrData(2, [this.props.credential.toUplcData()])
+        } else if (this.isCertifying()) {
+            return new ConstrData(3, [this.props.dcert.toUplcData()])
         } else {
             throw new Error(
                 `unhandled ScriptPurpose kind ${this.redeemer.kind}`

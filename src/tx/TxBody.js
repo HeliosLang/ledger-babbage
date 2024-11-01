@@ -91,6 +91,7 @@ export class TxBody {
     lastValidSlot
 
     /**
+     * TODO: ensure these are properly sorted
      * @readonly
      * @type {DCert[]}
      */
@@ -278,6 +279,18 @@ export class TxBody {
 
             if (svh) {
                 m.set(svh.toHex(), svh)
+            }
+        })
+
+        this.dcerts.forEach((dcert) => {
+            if (dcert.isDeregister() || dcert.isDelegate()) {
+                const h = dcert.credential.hash
+
+                const svh = h.stakingValidatorHash
+
+                if (svh) {
+                    m.set(svh.toHex(), svh)
+                }
             }
         })
 

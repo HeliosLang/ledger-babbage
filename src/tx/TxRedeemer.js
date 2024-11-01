@@ -29,11 +29,10 @@ import { Tx } from "./Tx.js"
  */
 
 /**
- * @typedef {"Minting" | "Spending" | "Rewarding"} TxRedeemerKind
+ * @typedef {"Minting" | "Spending" | "Rewarding" | "Certifying"} TxRedeemerKind
  */
 
 /**
- * TODO: verify the Rewarding TxRedeemer payload is the withdrawal index
  * @template {TxRedeemerKind} T
  * @typedef {T extends "Spending" ? {
  *   inputIndex: number
@@ -45,6 +44,10 @@ import { Tx } from "./Tx.js"
  *   cost: Cost
  * } : T extends "Rewarding" ? {
  *   withdrawalIndex: number
+ *   data: UplcData
+ *   cost: Cost
+ * } : T extends "Certifying" ? {
+ *   dcertIndex: number
  *   data: UplcData
  *   cost: Cost
  * } : never} TxRedeemerProps
@@ -140,6 +143,26 @@ export class TxRedeemer {
     }
 
     /**
+     * @param {IntLike} dcertIndex
+     * @param {UplcData} data
+     * @param {Cost} cost
+     * @returns {TxRedeemer<"Certifying">}
+     */
+    static Certifying(dcertIndex, data, cost = { mem: 0n, cpu: 0n }) {
+        const index = toInt(dcertIndex)
+
+        if (index < 0) {
+            throw new Error("negative TxRedeemer dcert index not allowed")
+        }
+
+        return new TxRedeemer("Certifying", {
+            dcertIndex: index,
+            data,
+            cost
+        })
+    }
+
+    /**
      * @param {BytesLike} bytes
      * @returns {TxRedeemer}
      */
@@ -162,7 +185,11 @@ export class TxRedeemer {
                 return TxRedeemer.Minting(policyIndex, data, cost)
             }
             case 2:
-                throw new Error(`TxRedeemer.Certifying unhandled`)
+                const dcertIndex = decodeItem(decodeInt)
+                const data = decodeItem(decodeUplcData)
+                const cost = decodeItem(decodeCost)
+
+                return TxRedeemer.Certifying(dcertIndex, data, cost)
             case 3: {
                 const withdrawalIndex = decodeItem(decodeInt)
                 const data = decodeItem(decodeUplcData)
@@ -188,6 +215,8 @@ export class TxRedeemer {
             return a.props.inputIndex - b.props.inputIndex
         } else if (a.isRewarding() && b.isRewarding()) {
             return a.props.withdrawalIndex - b.props.withdrawalIndex
+        } else if (a.isCertifying() && b.isCertifying()) {
+            return a.props.dcertIndex - b.props.dcertIndex
         } else if (a.kind == b.kind) {
             throw new Error(`unhandled TxRedeemer kind ${a.kind}`)
         } else {
@@ -219,6 +248,8 @@ export class TxRedeemer {
             return this.props.inputIndex
         } else if (this.isRewarding()) {
             return this.props.withdrawalIndex
+        } else if (this.isCertifying()) {
+            return this.props.dcertIndex
         } else {
             throw new Error(`unhandled TxRedeemer kind ${this.kind}`)
         }
@@ -235,6 +266,8 @@ export class TxRedeemer {
             return 1
         } else if (this.isRewarding()) {
             return 2
+        } else if (this.isCertifying()) {
+            return 3
         } else {
             throw new Error(`unhandled TxRedeemer kind ${this.kind}`)
         }
@@ -283,6 +316,17 @@ export class TxRedeemer {
             return {
                 redeemerType: "Rewarding",
                 withdrawalIndex: this.props.withdrawalIndex,
+                json: this.data.toSchemaJson(),
+                cbor: bytesToHex(this.data.toCbor()),
+                exUnits: {
+                    mem: this.cost.mem.toString(),
+                    cpu: this.cost.cpu.toString()
+                }
+            }
+        } else if (this.isCertifying()) {
+            return {
+                redeemerType: "Certifying",
+                dcertIndex: this.props.dcertIndex,
                 json: this.data.toSchemaJson(),
                 cbor: bytesToHex(this.data.toCbor()),
                 exUnits: {
@@ -380,7 +424,7 @@ export class TxRedeemer {
             const credential = expectSome(
                 tx.body.withdrawals[this.index]
             )[0].toCredential()
-            const stakingHash = credential.expectStakingHash()
+            const stakingHash = credential.hash
             const svh = expectSome(stakingHash.stakingValidatorHash)
             const summary = `rewards @${this.index}`
             return {
@@ -394,6 +438,27 @@ export class TxRedeemer {
                           new ScriptContextV2(
                               txInfo,
                               ScriptPurpose.Rewarding(this, credential)
+                          ).toUplcData()
+                      ].map((a) => new UplcDataValue(a))
+            }
+        } else if (this.isCertifying()) {
+            const dcert = expectSome(tx.body.dcerts[this.index])
+
+            const summary = `${dcert.kind} @${this.index}`
+            const stakingHash = expectSome(dcert.credential).hash
+            const svh = expectSome(stakingHash.stakingValidatorHash)
+
+            return {
+                summary,
+                description: `certifying ${summary}`,
+                script: expectSome(tx.witnesses.findUplcProgram(svh)),
+                args: !txInfo
+                    ? undefined
+                    : [
+                          this.data,
+                          new ScriptContextV2(
+                              txInfo,
+                              ScriptPurpose.Certifying(this, dcert)
                           ).toUplcData()
                       ].map((a) => new UplcDataValue(a))
             }
@@ -424,6 +489,13 @@ export class TxRedeemer {
     }
 
     /**
+     * @returns {this is TxRedeemer<"Certifying">}
+     */
+    isCertifying() {
+        return this.kind == "Certifying"
+    }
+
+    /**
      * @returns {number[]}
      */
     toCbor() {
@@ -431,7 +503,7 @@ export class TxRedeemer {
          * tags:
          *   0 -> spending
          *   1 -> minting
-         *   2 -> certifying (TODO)
+         *   2 -> certifying
          *   3 -> rewarding
          */
         if (this.isSpending()) {
@@ -458,6 +530,15 @@ export class TxRedeemer {
             return encodeTuple([
                 encodeInt(3),
                 encodeInt(props.withdrawalIndex),
+                props.data.toCbor(),
+                encodeCost(props.cost)
+            ])
+        } else if (this.isCertifying()) {
+            const props = this.props
+
+            return encodeTuple([
+                encodeInt(2),
+                encodeInt(props.dcertIndex),
                 props.data.toCbor(),
                 encodeCost(props.cost)
             ])

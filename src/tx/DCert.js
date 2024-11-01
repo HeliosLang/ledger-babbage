@@ -45,7 +45,6 @@ import { StakingCredential } from "./StakingCredential.js"
  */
 export class DCert {
     /**
-     * @private
      * @readonly
      * @type {T}
      */
