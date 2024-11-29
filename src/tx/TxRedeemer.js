@@ -278,12 +278,19 @@ export class TxRedeemer {
      * @returns {bigint}
      */
     calcExFee(params) {
+        const { mem, cpu } = this.calcExFeeElements(params)
+        return BigInt(mem + cpu)
+    }
+
+    calcExFeeElements(params) {
         const helper = new NetworkParamsHelper(params)
 
-        const { mem, cpu } = this.props.cost
+        const { mem: usedMem, cpu: usedCpu } = this.props.cost
         const [memFee, cpuFee] = helper.exFeeParams
 
-        return BigInt(Math.ceil(Number(mem) * memFee + Number(cpu) * cpuFee))
+        const mem = Math.ceil(Number(usedMem) * memFee)
+        const cpu = Math.ceil(Number(usedCpu) * cpuFee)
+        return { mem, cpu }
     }
 
     /**
