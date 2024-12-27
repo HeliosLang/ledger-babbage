@@ -1,9 +1,8 @@
 import { ScriptHash as ScriptHashAllegra } from "@helios-lang/ledger-allegra"
 import { compareBytes, dummyBytes, equalsBytes } from "@helios-lang/codec-utils"
-import { None, isSome } from "@helios-lang/type-utils"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
+ * @import { BytesLike } from "@helios-lang/codec-utils"
  * @typedef {import("@helios-lang/ledger-allegra").ScriptHashLike} ScriptHashLike
  * @typedef {import("./Hash.js").Hash} Hash
  */
@@ -21,12 +20,12 @@ export class ScriptHash extends ScriptHashAllegra {
 
     /**
      * @param {BytesLike} bytes
-     * @param {Option<C>} context
+     * @param {C | undefined} context
      */
-    constructor(bytes, context) {
+    constructor(bytes, context = undefined) {
         super(bytes)
 
-        if (isSome(context)) {
+        if (context !== undefined) {
             this.context = context
         }
     }
@@ -45,7 +44,7 @@ export class ScriptHash extends ScriptHashAllegra {
      * @returns {ScriptHash}
      */
     static dummy(seed = 0) {
-        return new ScriptHash(dummyBytes(28, seed), None)
+        return new ScriptHash(dummyBytes(28, seed), undefined)
     }
 
     /**

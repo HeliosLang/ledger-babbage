@@ -5,20 +5,18 @@ import {
     isBytes,
     isTuple
 } from "@helios-lang/cbor"
-import { ByteStream } from "@helios-lang/codec-utils"
-import { None } from "@helios-lang/type-utils"
+import { makeByteStream } from "@helios-lang/codec-utils"
 import { ConstrData } from "@helios-lang/uplc"
 import { Value } from "../money/Value.js"
-import { Address } from "./Address.js"
+import { decodeAddress } from "./ShelleyAddress.js"
 import { TxOutput } from "./TxOutput.js"
 import { TxOutputDatum } from "./TxOutputDatum.js"
 import { TxOutputId } from "./TxOutputId.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
- * @typedef {import("@helios-lang/uplc").UplcData} UplcData
- * @typedef {import("@helios-lang/uplc").UplcProgramV1I} UplcProgramV1I
- * @typedef {import("@helios-lang/uplc").UplcProgramV2I} UplcProgramV2I
+ * @import { BytesLike } from "@helios-lang/codec-utils"
+ * @import { UplcData, UplcProgramV1I, UplcProgramV2I } from "@helios-lang/uplc"
+ * @import { Address } from "./ShelleyAddress.js"
  * @typedef {import("./TxOutputDatum.js").TxOutputDatumKind} TxOutputDatumKind
  * @typedef {import("./TxOutputId.js").TxOutputIdLike} TxOutputIdLike
  */
@@ -54,15 +52,15 @@ export class TxInput {
     /**
      * Can be mutated in order to recover
      * @private
-     * @type {Option<TxOutput>}
+     * @type {TxOutput | undefined}
      */
     _output
 
     /**
      * @param {TxOutputIdLike} outputId
-     * @param {Option<TxOutput<CSpending, CStaking>>} output - used during building/emulation, not part of serialization
+     * @param {TxOutput<CSpending, CStaking> | undefined} output - used during building/emulation, not part of serialization
      */
-    constructor(outputId, output = None) {
+    constructor(outputId, output = undefined) {
         this.id = TxOutputId.new(outputId)
         this._output = output
     }
@@ -73,7 +71,7 @@ export class TxInput {
      * @returns {TxInput}
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         if (decodeTupleLazy(stream.copy())(isBytes)) {
             // first element in tuple is a bytearray -> ledger representation (i.e. just a reference)
@@ -172,7 +170,7 @@ export class TxInput {
         } else {
             const [bytes, expectFull] = args
 
-            const stream = ByteStream.from(bytes).copy()
+            const stream = makeByteStream({ bytes }).copy()
 
             try {
                 const input = TxInput.fromCbor(stream)
@@ -207,7 +205,7 @@ export class TxInput {
 
     /**
      * Shortcut
-     * @type {Option<TxOutputDatum<TxOutputDatumKind>>}
+     * @type {TxOutputDatum<TxOutputDatumKind> | undefined}
      */
     get datum() {
         return this.output.datum
@@ -229,14 +227,22 @@ export class TxInput {
      * @type {CSpending}
      */
     get spendingContext() {
-        return this.address.spendingContext
+        if (this.address.era == "Shelley") {
+            return this.address.spendingContext
+        } else {
+            return /** @type {any} */ (undefined)
+        }
     }
 
     /**
      * @type {CStaking}
      */
     get stakingContext() {
-        return this.address.stakingContext
+        if (this.address.era == "Shelley") {
+            return this.address.stakingContext
+        } else {
+            return /** @type {any} */ (undefined)
+        }
     }
 
     /**

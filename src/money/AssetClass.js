@@ -5,10 +5,10 @@ import {
     encodeConstr
 } from "@helios-lang/cbor"
 import {
-    ByteStream,
     bytesToHex,
     compareBytes,
     equalsBytes,
+    makeByteStream,
     toBytes
 } from "@helios-lang/codec-utils"
 import { blake2b, encodeBech32 } from "@helios-lang/crypto"
@@ -16,9 +16,8 @@ import { ByteArrayData, ConstrData, decodeUplcData } from "@helios-lang/uplc"
 import { MintingPolicyHash } from "../hashes/index.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
- * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
- * @typedef {import("@helios-lang/uplc").UplcData} UplcData
+ * @import { BytesLike, IntLike } from "@helios-lang/codec-utils"
+ * @import { UplcData } from "@helios-lang/uplc"
  * @typedef {import("../hashes/index.js").MintingPolicyHashLike} MintingPolicyHashLike
  */
 
@@ -108,7 +107,7 @@ export class AssetClass {
      * @returns {AssetClass}
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         const [tag, [mph, tokenName]] = decodeConstr(stream, [
             MintingPolicyHash,

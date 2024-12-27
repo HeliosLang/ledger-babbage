@@ -9,7 +9,6 @@ import {
 } from "@helios-lang/cbor"
 import { bytesToHex } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
-import { None } from "@helios-lang/type-utils"
 import { ConstrData, decodeUplcData } from "@helios-lang/uplc"
 import { DatumHash } from "../hashes/index.js"
 
@@ -25,7 +24,7 @@ import { DatumHash } from "../hashes/index.js"
  */
 
 /**
- * @typedef {Option<TxOutputDatum> | DatumHash | UplcData} TxOutputDatumLike
+ * @typedef {(TxOutputDatum | undefined) | DatumHash | UplcData} TxOutputDatumLike
  */
 
 /**
@@ -112,23 +111,23 @@ export class TxOutputDatum {
     }
 
     /**
-     * @type {typeof None}
+     * @type {undefined}
      */
     static get None() {
-        return None
+        return undefined
     }
 
     /**
      * @param {TxOutputDatumLike} arg
-     * @returns {Option<TxOutputDatum>}
+     * @returns {TxOutputDatum | undefined}
      */
     static new(arg) {
         if (arg instanceof TxOutputDatum) {
             return arg
         } else if (arg instanceof DatumHash) {
             return TxOutputDatum.Hash(arg)
-        } else if (arg === null || arg === undefined) {
-            return None
+        } else if (arg === undefined) {
+            return undefined
         } else {
             return TxOutputDatum.Inline(arg)
         }
@@ -177,7 +176,7 @@ export class TxOutputDatum {
 
     /**
      * @param {UplcData} data
-     * @returns {Option<TxOutputDatum>}
+     * @returns {TxOutputDatum | undefined}
      */
     static fromUplcData(data) {
         const { tag, fields } = ConstrData.expect(data)
@@ -190,7 +189,7 @@ export class TxOutputDatum {
                     )
                 }
 
-                return None
+                return undefined
             case 1:
                 if (fields.length != 1) {
                     throw new Error(

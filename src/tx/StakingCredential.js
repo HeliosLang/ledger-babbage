@@ -1,4 +1,3 @@
-import { None } from "@helios-lang/type-utils"
 import { ConstrData } from "@helios-lang/uplc"
 import {
     PubKeyHash,
@@ -85,10 +84,10 @@ export class StakingCredential {
     /**
      * @template [C=unknown]
      * @param {number[]} bytes
-     * @param {Option<C>} context
-     * @returns {Option<StakingCredential<C>>}
+     * @param {C | undefined} context
+     * @returns {StakingCredential<C> | undefined}
      */
-    static fromAddressBytes(bytes, context = None) {
+    static fromAddressBytes(bytes, context = undefined) {
         if (bytes.length > 29) {
             const head = bytes[0]
             const body = bytes.slice(29, 57)
@@ -117,7 +116,7 @@ export class StakingCredential {
                     throw new Error(`unhandled StakingCredential type ${type}`)
             }
         } else {
-            return None
+            return undefined
         }
     }
 
@@ -188,7 +187,7 @@ export class StakingCredential {
  *   bytes: number[]
  *   context?: Context
  * }} args
- * @returns {Option<StakingCredentialI<Context>>}
+ * @returns {StakingCredentialI<Context> | undefined}
  */
 /**
  * @template [Context=unknown]
@@ -210,7 +209,7 @@ export class StakingCredential {
  *   uplcData: UplcData
  *   context?: Context
  * })} args
- * @returns {Option<StakingCredentialI<Context>>}
+ * @returns {StakingCredentialI<Context> | undefined}
  */
 export function makeStakingCredential(args) {
     if ("hash" in args) {
@@ -247,7 +246,7 @@ export function makeStakingCredential(args) {
                     throw new Error(`unhandled StakingCredential type ${type}`)
             }
         } else {
-            return None
+            return undefined
         }
     } else if ("uplcData" in args) {
         const data = args.uplcData

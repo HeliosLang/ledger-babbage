@@ -4,7 +4,7 @@ import {
     encodeInt,
     encodeTuple
 } from "@helios-lang/cbor"
-import { ByteStream, toInt } from "@helios-lang/codec-utils"
+import { makeByteStream, toInt } from "@helios-lang/codec-utils"
 import {
     ByteArrayData,
     ConstrData,
@@ -14,10 +14,9 @@ import {
 import { TxId } from "./TxId.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
- * @typedef {import("@helios-lang/codec-utils").IntLike} IntLike
- * @typedef {import("@helios-lang/uplc").UplcData} UplcData
- * @typedef {import("./TxId.js").TxIdLike} TxIdLike
+ * @import { BytesLike, IntLike } from "@helios-lang/codec-utils"
+ * @import { UplcData } from "@helios-lang/uplc"
+ * @import { TxIdLike } from "./TxId.js"
  */
 
 /**
@@ -93,7 +92,7 @@ export class TxOutputId {
      * @returns {TxOutputId}
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         const [txId, utxoIdx] = decodeTuple(stream, [TxId, decodeInt])
 

@@ -12,7 +12,7 @@ export * from "./tx/index.js"
  * @typedef {import("./native/index.js").NativeContext} NativeContext
  * @typedef {import("./params/index.js").NetworkParams} NetworkParams
  * @typedef {import("./time/index.js").TimeLike} TimeLike
- * @typedef {import("./tx/index.js").AddressLike} AddressLike
+ * @typedef {import("./tx/index.js").ShelleyAddressLike} ShelleyAddressLike
  * @typedef {import("./tx/index.js").StakingAddressLike} StakingAddressLike
  * @typedef {import("./tx/index.js").TxMetadataAttr} TxMetadataAttr
  */

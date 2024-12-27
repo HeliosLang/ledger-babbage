@@ -4,8 +4,7 @@ import {
     encodeInt,
     encodeTuple
 } from "@helios-lang/cbor"
-import { ByteStream, toInt } from "@helios-lang/codec-utils"
-import { None } from "@helios-lang/type-utils"
+import { makeByteStream, toInt } from "@helios-lang/codec-utils"
 import { ConstrData, IntData } from "@helios-lang/uplc"
 import { PubKeyHash, StakingHash } from "../hashes/index.js"
 import { PoolParameters } from "../pool/index.js"
@@ -127,7 +126,7 @@ export class DCert {
      * @param {BytesLike} bytes
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         const [tag, decodeItem] = decodeTagged(stream)
 
@@ -158,13 +157,13 @@ export class DCert {
      */
 
     /**
-     * @type {T extends DCertKindWithCredential ? StakingCredential<unknown> : T extends Exclude<DCertKind, DCertKindWithCredential> ? never : Option<StakingCredential<unknown>>}
+     * @type {T extends DCertKindWithCredential ? StakingCredential<unknown> : T extends Exclude<DCertKind, DCertKindWithCredential> ? never : (StakingCredential<unknown> | undefined)}
      */
     get credential() {
         return /** @type {any} */ (
             this.isRegister() || this.isDeregister() || this.isDelegate()
                 ? this.props.credential
-                : None
+                : undefined
         )
     }
 
@@ -172,11 +171,11 @@ export class DCert {
      * @typedef {"RetirePool"} DCertKindWithEpoch
      */
     /**
-     * @type {T extends DCertKindWithEpoch ? number : T extends Exclude<DCertKind, DCertKindWithEpoch> ? never : Option<number>}
+     * @type {T extends DCertKindWithEpoch ? number : T extends Exclude<DCertKind, DCertKindWithEpoch> ? never : (number | undefined)}
      */
     get epoch() {
         return /** @type {any} */ (
-            this.isRetirePool() ? this.props.epoch : None
+            this.isRetirePool() ? this.props.epoch : undefined
         )
     }
 
@@ -185,7 +184,7 @@ export class DCert {
      */
 
     /**
-     * @type {T extends DCertKindWithPoolId ? PubKeyHash : T extends Exclude<DCertKind, DCertKindWithPoolId> ? never : Option<PubKeyHash>}
+     * @type {T extends DCertKindWithPoolId ? PubKeyHash : T extends Exclude<DCertKind, DCertKindWithPoolId> ? never : (PubKeyHash | undefined)}
      */
     get poolId() {
         return /** @type {any} */ (
@@ -195,7 +194,7 @@ export class DCert {
                   ? this.props.poolId
                   : this.isRegisterPool()
                     ? this.props.parameters.id
-                    : None
+                    : undefined
         )
     }
 
@@ -204,11 +203,11 @@ export class DCert {
      */
 
     /**
-     * @type {T extends DCertKindWithPoolParameters ? PoolParameters : T extends Exclude<DCertKind, DCertKindWithPoolParameters> ? never : Option<PoolParameters>}
+     * @type {T extends DCertKindWithPoolParameters ? PoolParameters : T extends Exclude<DCertKind, DCertKindWithPoolParameters> ? never : (PoolParameters | undefined)}
      */
     get poolParameters() {
         return /** @type {any} */ (
-            this.isRegisterPool() ? this.props.parameters : None
+            this.isRegisterPool() ? this.props.parameters : undefined
         )
     }
 

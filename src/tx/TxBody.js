@@ -12,7 +12,7 @@ import {
 } from "@helios-lang/cbor"
 import { bytesToHex, toInt } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
-import { None, expectSome, isSome } from "@helios-lang/type-utils"
+import { expectDefined } from "@helios-lang/type-utils"
 import { PubKeyHash, ScriptHash } from "../hashes/index.js"
 import { Assets, Value } from "../money/index.js"
 import { NetworkParamsHelper } from "../params/index.js"
@@ -39,18 +39,18 @@ import { TxRedeemer } from "./TxRedeemer.js"
  *   inputs: TxInput[]
  *   outputs: TxOutput[]
  *   fee: bigint
- *   firstValidSlot: Option<number>
- *   lastValidSlot: Option<number>
+ *   firstValidSlot?: number
+ *   lastValidSlot?: number
  *   dcerts: DCert[]
  *   withdrawals: [StakingAddress, bigint][]
  *   minted: Assets
- *   scriptDataHash?: Option<number[]>
+ *   scriptDataHash?: number[]
  *   collateral?: TxInput[]
  *   signers: PubKeyHash[]
- *   collateralReturn?: Option<TxOutput>
+ *   collateralReturn?: TxOutput
  *   totalCollateral?: bigint
  *   refInputs: TxInput[]
- *   metadataHash?: Option<number[]>
+ *   metadataHash?: number[]
  * }} TxBodyProps
  */
 
@@ -80,13 +80,13 @@ export class TxBody {
 
     /**
      * @readonly
-     * @type {Option<number>}
+     * @type {number | undefined}
      */
     firstValidSlot
 
     /**
      * @readonly
-     * @type {Option<number>}
+     * @type {number | undefined}
      */
     lastValidSlot
 
@@ -115,7 +115,7 @@ export class TxBody {
 
     /**
      * @readonly
-     * @type {Option<number[]>}
+     * @type {number[] | undefined}
      */
     scriptDataHash
 
@@ -133,7 +133,7 @@ export class TxBody {
 
     /**
      * @readonly
-     * @type {Option<TxOutput>}
+     * @type {TxOutput | undefined}
      */
     collateralReturn
 
@@ -151,7 +151,7 @@ export class TxBody {
 
     /**
      * @readonly
-     * @type {Option<number[]>}
+     * @type {number[] | undefined}
      */
     metadataHash
 
@@ -234,13 +234,15 @@ export class TxBody {
         })
 
         return new TxBody({
-            inputs: expectSome(inputs),
-            outputs: expectSome(outputs),
-            fee: expectSome(fee),
-            firstValidSlot: isSome(firstValidSlot)
-                ? Number(firstValidSlot)
-                : None,
-            lastValidSlot: isSome(lastValidSlot) ? Number(lastValidSlot) : None,
+            inputs: expectDefined(inputs),
+            outputs: expectDefined(outputs),
+            fee: expectDefined(fee),
+            firstValidSlot:
+                firstValidSlot !== undefined
+                    ? Number(firstValidSlot)
+                    : undefined,
+            lastValidSlot:
+                lastValidSlot !== undefined ? Number(lastValidSlot) : undefined,
             dcerts: dcerts ?? [],
             withdrawals: withdrawals ?? [],
             metadataHash,
@@ -265,7 +267,12 @@ export class TxBody {
         const m = new Map()
 
         this.inputs.forEach((utxo) => {
-            const scriptHash = utxo.output.address.validatorHash
+            const address = utxo.output.address
+            if (address.era == "Byron") {
+                throw new Error("not yet implemented")
+            }
+
+            const scriptHash = address.validatorHash
 
             if (scriptHash) {
                 m.set(scriptHash.toHex(), scriptHash)
@@ -311,7 +318,13 @@ export class TxBody {
 
         this.inputs.concat(this.collateral).forEach((utxo) => {
             try {
-                const pubKeyHash = utxo.output.address.pubKeyHash
+                const address = utxo.output.address
+
+                if (address.era == "Byron") {
+                    throw new Error("not yet implemented")
+                }
+
+                const pubKeyHash = address.pubKeyHash
 
                 if (pubKeyHash) {
                     set.add(pubKeyHash.toHex())
@@ -383,7 +396,7 @@ export class TxBody {
 
         return new TimeRange(start, end, {
             excludeStart: false,
-            excludeEnd: isSome(this.lastValidSlot)
+            excludeEnd: this.lastValidSlot !== undefined
         })
     }
 
@@ -492,7 +505,7 @@ export class TxBody {
         m.set(1, encodeDefList(this.outputs))
         m.set(2, encodeInt(this.fee))
 
-        if (isSome(this.lastValidSlot)) {
+        if (this.lastValidSlot !== undefined) {
             m.set(3, encodeInt(this.lastValidSlot))
         }
 
@@ -512,11 +525,11 @@ export class TxBody {
             )
         }
 
-        if (isSome(this.metadataHash)) {
+        if (this.metadataHash !== undefined) {
             m.set(7, encodeBytes(this.metadataHash))
         }
 
-        if (isSome(this.firstValidSlot)) {
+        if (this.firstValidSlot !== undefined) {
             m.set(8, encodeInt(this.firstValidSlot))
         }
 
@@ -524,7 +537,7 @@ export class TxBody {
             m.set(9, this.minted.toCbor())
         }
 
-        if (isSome(this.scriptDataHash)) {
+        if (this.scriptDataHash !== undefined) {
             m.set(11, encodeBytes(this.scriptDataHash))
         }
 
@@ -539,7 +552,7 @@ export class TxBody {
         // what is NetworkId used for, seems a bit useless?
         // object.set(15, encodeInt(2n));
 
-        if (isSome(this.collateralReturn)) {
+        if (this.collateralReturn !== undefined) {
             m.set(16, this.collateralReturn.toCbor())
         }
 

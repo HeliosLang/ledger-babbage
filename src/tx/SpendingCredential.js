@@ -1,4 +1,3 @@
-import { None, isSome } from "@helios-lang/type-utils"
 import { ConstrData } from "@helios-lang/uplc"
 import { PubKeyHash, ValidatorHash } from "../hashes/index.js"
 
@@ -53,13 +52,13 @@ export class SpendingCredential {
      * @private
      * @param {T} kind
      * @param {SpendingCredentialProps<T>} props
-     * @param {Option<C>} context
+     * @param {C | undefined} context
      */
-    constructor(kind, props, context = None) {
+    constructor(kind, props, context = undefined) {
         this.kind = kind
         this.props = props
 
-        if (isSome(context)) {
+        if (context !== undefined) {
             this.context = context
         }
     }
@@ -94,7 +93,7 @@ export class SpendingCredential {
                 {
                     hash: ValidatorHash.new(hash)
                 },
-                hash instanceof ValidatorHash ? hash.context : None
+                hash instanceof ValidatorHash ? hash.context : undefined
             )
         )
     }
@@ -102,10 +101,10 @@ export class SpendingCredential {
     /**
      * @template [C=unknown]
      * @param {number[]} bytes
-     * @param {Option<C>} context
+     * @param {C | undefined} context
      * @returns {SpendingCredential<SpendingCredentialKind, C>}
      */
-    static fromAddressBytes(bytes, context = None) {
+    static fromAddressBytes(bytes, context = undefined) {
         if (bytes.length < 29) {
             throw new Error(
                 `expected at least 29 bytes, got ${bytes.length} bytes`
@@ -154,7 +153,7 @@ export class SpendingCredential {
      * @returns {SpendingCredential}
      */
     static fromUplcData(data) {
-        ConstrData.assert(data, None, 1)
+        ConstrData.assert(data, undefined, 1)
 
         switch (data.tag) {
             case 0:
@@ -187,17 +186,21 @@ export class SpendingCredential {
     }
 
     /**
-     * @type {T extends "PubKey" ? PubKeyHash : T extends "Validator" ? typeof None : Option<PubKeyHash>}
+     * @type {T extends "PubKey" ? PubKeyHash : T extends "Validator" ? undefined : (PubKeyHash | undefined)}
      */
     get pubKeyHash() {
-        return /** @type {any} */ (this.isPubKey() ? this.props.hash : None)
+        return /** @type {any} */ (
+            this.isPubKey() ? this.props.hash : undefined
+        )
     }
 
     /**
-     * @type {T extends "Validator" ? ValidatorHash<C> : T extends "PubKey" ? typeof None : Option<ValidatorHash<C>>}
+     * @type {T extends "Validator" ? ValidatorHash<C> : T extends "PubKey" ? undefined : (ValidatorHash<C> | undefined)}
      */
     get validatorHash() {
-        return /** @type {any} */ (this.isValidator() ? this.props.hash : None)
+        return /** @type {any} */ (
+            this.isValidator() ? this.props.hash : undefined
+        )
     }
 
     /**

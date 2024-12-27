@@ -117,12 +117,35 @@ export class TxWitnesses {
             5: redeemers,
             6: v2Scripts
         } = decodeObjectIKey(bytes, {
-            0: (s) => decodeList(s, Signature),
-            1: (s) => decodeList(s, NativeScript),
-            3: (s) => decodeList(s, UplcProgramV1),
-            4: (s) => decodeList(s, decodeUplcData),
-            5: (s) => decodeList(s, TxRedeemer),
-            6: (s) => decodeList(s, UplcProgramV2)
+            0: (s) => decodeList(s, (bytes) => {
+                const res = Signature.fromCbor(bytes)
+
+                console.log("done decoding Signature")
+                return res
+            }),
+            1: (s) => decodeList(s, (bytes) => {
+                console.log("decoding native script")
+                return NativeScript.fromCbor(bytes)
+            }),
+            3: (s) => decodeList(s, (bytes) => {
+                console.log("decoding uplcprogramv1")
+                return UplcProgramV1.fromCbor(bytes)
+            }),
+            4: (s) => decodeList(s, (bytes) => {
+                console.log("decoding UplcData (Datum)")
+                return decodeUplcData(bytes)
+            }),
+            5: (s) => decodeList(s, (bytes) => {
+                console.log("decoding TxRedeemer")
+                return TxRedeemer.fromCbor(bytes)
+            }),
+            6: (s) => decodeList(s, (bytes) => {
+                console.log("decoding UplcPRogramV2")
+                const res = UplcProgramV2.fromCbor(bytes)
+                console.log("done decoding UplcProgramV2")
+                console.log("After decoding UplcProgramV2: ", bytesToHex(bytes.peekRemaining()))
+                return res
+            })
         })
 
         return new TxWitnesses({

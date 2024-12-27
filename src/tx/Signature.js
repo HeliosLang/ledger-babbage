@@ -5,9 +5,9 @@ import {
     encodeTuple
 } from "@helios-lang/cbor"
 import {
-    ByteStream,
     bytesToHex,
     dummyBytes,
+    makeByteStream,
     toBytes
 } from "@helios-lang/codec-utils"
 import { Ed25519 } from "@helios-lang/crypto"
@@ -59,12 +59,14 @@ export class Signature {
      * @returns {Signature}
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         const [pubKey, signatureBytes] = decodeTuple(stream, [
             PubKey,
             decodeBytes
         ])
+
+        console.log("decoding signature")
 
         return new Signature(pubKey, signatureBytes)
     }

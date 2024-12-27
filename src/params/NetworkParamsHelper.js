@@ -1,5 +1,5 @@
 import { toInt } from "@helios-lang/codec-utils"
-import { expectSome } from "@helios-lang/type-utils"
+import { expectDefined } from "@helios-lang/type-utils"
 import { DEFAULT_NETWORK_PARAMS } from "./NetworkParams.js"
 
 /**
@@ -38,7 +38,7 @@ export class NetworkParamsHelper {
      * @type {number[]}
      */
     get costModelParamsV1() {
-        return expectSome(
+        return expectDefined(
             this.params?.costModelParamsV1,
             "'networkParams.costModelParamsV1' undefined"
         )
@@ -48,7 +48,7 @@ export class NetworkParamsHelper {
      * @type {number[]}
      */
     get costModelParamsV2() {
-        return expectSome(
+        return expectDefined(
             this.params?.costModelParamsV2,
             "'networkParams.costModelParamsV2' undefined"
         )
@@ -59,11 +59,11 @@ export class NetworkParamsHelper {
      */
     get txFeeParams() {
         return [
-            expectSome(
+            expectDefined(
                 this.params?.txFeeFixed,
                 "'networkParams.txFeeFixed' undefined"
             ),
-            expectSome(
+            expectDefined(
                 this.params?.txFeePerByte,
                 "'networkParams.txFeePerByte' undefined"
             )
@@ -75,11 +75,11 @@ export class NetworkParamsHelper {
      */
     get exFeeParams() {
         return [
-            expectSome(
+            expectDefined(
                 this.params?.exMemFeePerUnit,
                 "'networkParams.exMemFeePerUnit' undefined"
             ),
-            expectSome(
+            expectDefined(
                 this.params?.exCpuFeePerUnit,
                 "'networkParams.exCpuFeePerUnit' undefined"
             )
@@ -90,7 +90,7 @@ export class NetworkParamsHelper {
      * @type {number}
      */
     get lovelacePerUTXOByte() {
-        return expectSome(
+        return expectDefined(
             this.params?.utxoDepositPerByte,
             "'networkParams.utxoDepositPerByte' undefined"
         )
@@ -100,7 +100,7 @@ export class NetworkParamsHelper {
      * @type {number}
      */
     get minCollateralPct() {
-        return expectSome(
+        return expectDefined(
             this.params?.collateralPercentage,
             "'networkParams.collateralPercentage' undefined"
         )
@@ -110,7 +110,7 @@ export class NetworkParamsHelper {
      * @type {number}
      */
     get maxCollateralInputs() {
-        return expectSome(
+        return expectDefined(
             this.params?.maxCollateralInputs,
             "'networkParams.maxCollateralInputs' undefined"
         )
@@ -121,11 +121,11 @@ export class NetworkParamsHelper {
      */
     get maxTxExecutionBudget() {
         return [
-            expectSome(
+            expectDefined(
                 this.params?.maxTxExMem,
                 "'networkParams.maxTxExMem' undefined"
             ),
-            expectSome(
+            expectDefined(
                 this.params?.maxTxExCpu,
                 "'networkParams.maxTxExCpu' undefined"
             )
@@ -156,7 +156,7 @@ export class NetworkParamsHelper {
      * @type {number}
      */
     get maxTxSize() {
-        return expectSome(
+        return expectDefined(
             this.params?.maxTxSize,
             "'networkParams.maxTxSize' undefined"
         )
@@ -166,7 +166,7 @@ export class NetworkParamsHelper {
      * @type {number}
      */
     get secondsPerSlot() {
-        return expectSome(
+        return expectDefined(
             this.params?.secondsPerSlot,
             "'networkParams.secondsPerSlot' undefined"
         )
@@ -177,7 +177,7 @@ export class NetworkParamsHelper {
      */
     get stakeAddressDeposit() {
         return BigInt(
-            expectSome(
+            expectDefined(
                 this.params?.stakeAddrDeposit,
                 "'networkParams.stakeAddrDeposit' undefined"
             )
@@ -189,7 +189,7 @@ export class NetworkParamsHelper {
      * @type {number}
      */
     get latestTipSlot() {
-        return expectSome(
+        return expectDefined(
             this.params?.refTipSlot,
             "'networkParams.refTipSlot' undefined"
         )
@@ -200,7 +200,7 @@ export class NetworkParamsHelper {
      * @type {number}
      */
     get latestTipTime() {
-        return expectSome(
+        return expectDefined(
             this.params?.refTipTime,
             "'networkParams.refTipTime' undefined"
         )

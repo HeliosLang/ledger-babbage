@@ -41,16 +41,17 @@
     "devDependencies": {
         "@types/node": "^22.5.0",
         "prettier": "^3.3.3",
-        "typescript": "^5.5.4"
+        "typescript": "^5.6.3"
     },
     "dependencies": {
-        "@helios-lang/cbor": "^0.2.1",
-        "@helios-lang/codec-utils": "^0.2.1",
-        "@helios-lang/crypto": "^0.1.17",
+        "@helios-lang/cbor": "^0.2.2",
+        "@helios-lang/codec-utils": "^0.3.1",
+        "@helios-lang/crypto": "^0.2.0",
         "@helios-lang/ledger-allegra": "^0.1.3",
         "@helios-lang/ledger-alonzo": "^0.1.6",
+        "@helios-lang/ledger-byron": "0.2.0",
         "@helios-lang/ledger-shelley": "^0.1.5",
-        "@helios-lang/type-utils": "^0.1.25",
+        "@helios-lang/type-utils": "^0.2.8",
         "@helios-lang/uplc": "^0.6.1"
     }
 }

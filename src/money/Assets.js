@@ -7,11 +7,11 @@ import {
     encodeMap
 } from "@helios-lang/cbor"
 import {
-    ByteStream,
     bytesToHex,
     compareBytes,
     decodeUtf8,
     isValidUtf8,
+    makeByteStream,
     toBytes
 } from "@helios-lang/codec-utils"
 import { ByteArrayData, IntData, MapData } from "@helios-lang/uplc"
@@ -113,7 +113,7 @@ export class Assets {
      * @returns {Assets}
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         return new Assets(
             decodeMap(stream, MintingPolicyHash, (innerBytes) =>

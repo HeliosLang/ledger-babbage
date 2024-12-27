@@ -1,7 +1,6 @@
 import { decodeBytes } from "@helios-lang/cbor"
 import { compareBytes, dummyBytes, equalsBytes } from "@helios-lang/codec-utils"
 import { blake2b, encodeBech32 } from "@helios-lang/crypto"
-import { None } from "@helios-lang/type-utils"
 import { ByteArrayData, decodeUplcData } from "@helios-lang/uplc"
 import { ScriptHash } from "./ScriptHash.js"
 
@@ -32,9 +31,9 @@ export class MintingPolicyHash extends ScriptHash {
     /**
      * Can be 0 bytes in case of Ada
      * @param {BytesLike} bytes
-     * @param {Option<C>} context - not recommended to set this manually
+     * @param {C | undefined} context - not recommended to set this manually
      */
-    constructor(bytes, context = None) {
+    constructor(bytes, context = undefined) {
         super(bytes, context)
 
         if (!(this.bytes.length == 28 || this.bytes.length == 0)) {

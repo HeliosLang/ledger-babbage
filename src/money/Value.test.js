@@ -1,7 +1,7 @@
 import { strictEqual } from "node:assert"
 import { describe, it } from "node:test"
 import { bytesToHex } from "@helios-lang/codec-utils"
-import { Address } from "../tx/Address.js"
+import { makeDummyAddress } from "../tx/ShelleyAddress.js"
 import { TxInput } from "../tx/TxInput.js"
 import { TxOutput } from "../tx/TxOutput.js"
 import { TxOutputId } from "../tx/TxOutputId.js"
@@ -18,7 +18,7 @@ describe(Value.name, () => {
         const makeInput = (value) => {
             return new TxInput(
                 TxOutputId.dummy(),
-                new TxOutput(Address.dummy(IS_MAINNET), value)
+                new TxOutput(makeDummyAddress(IS_MAINNET), value)
             )
         }
 

@@ -1,4 +1,11 @@
-export { Address } from "./Address.js"
+export {
+    decodeAddress,
+    decodeShelleyAddress,
+    makeAddress,
+    makeAddressFromCredentials,
+    makeAddressFromHashes,
+    makeDummyAddress
+} from "./ShelleyAddress.js"
 export { DCert } from "./DCert.js"
 export { PubKey } from "./PubKey.js"
 export { ScriptContextV2 } from "./ScriptContextV2.js"
@@ -19,7 +26,7 @@ export { TxRedeemer } from "./TxRedeemer.js"
 export { TxWitnesses } from "./TxWitnesses.js"
 
 /**
- * @typedef {import("./Address.js").AddressLike} AddressLike
+ * @typedef {import("./ShelleyAddress.js").ShelleyAddressLike} ShelleyAddressLike
  * @typedef {import("./DCert.js").DCertKind} DCertKind
  * @typedef {import("./SpendingCredential.js").SpendingCredentialLike} SpendingCredentialLike
  * @typedef {import("./StakingAddress.js").StakingAddressLike} StakingAddressLike

@@ -6,7 +6,7 @@ import {
     encodeString,
     encodeTuple
 } from "@helios-lang/cbor"
-import { ByteStream } from "@helios-lang/codec-utils"
+import { makeByteStream } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
 
 /**
@@ -29,7 +29,7 @@ export class PoolMetadata {
      * @param {BytesLike} bytes
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         const [url, hash] = decodeTuple(stream, [decodeString, decodeBytes])
 

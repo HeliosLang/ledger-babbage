@@ -6,7 +6,6 @@ import {
     toBytes
 } from "@helios-lang/codec-utils"
 import { decodeBech32, encodeBech32 } from "@helios-lang/crypto"
-import { None } from "@helios-lang/type-utils"
 import { ConstrData } from "@helios-lang/uplc"
 import {
     PubKeyHash,
@@ -14,15 +13,15 @@ import {
     StakingValidatorHash,
     ValidatorHash
 } from "../hashes/index.js"
-import { Address } from "./Address.js"
+import { makeAddress } from "./ShelleyAddress.js"
 import { StakingCredential } from "./StakingCredential.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
- * @typedef {import("@helios-lang/uplc").UplcData} UplcData
- * @typedef {import("@helios-lang/uplc").ConstrDataI} ConstrDataI
- * @typedef {import("../hashes/index.js").StakingHashLike} StakingHashLike
- * @typedef {import("./StakingCredential.js").StakingCredentialLike} StakingCredentialLike
+ * @import { BytesLike } from "@helios-lang/codec-utils"
+ * @import { ConstrDataI, UplcData } from "@helios-lang/uplc"
+ * @import { StakingHashLike } from "../hashes/index.js"
+ * @import { ShelleyAddress } from "./ShelleyAddress.js"
+ * @import { StakingCredentialLike } from "./StakingCredential.js"
  */
 
 /**
@@ -38,7 +37,7 @@ import { StakingCredential } from "./StakingCredential.js"
  */
 
 /**
- * @typedef {StakingAddress | BytesLike | Address | StakingCredential | PubKeyHash | ValidatorHash} StakingAddressLike
+ * @typedef {StakingAddress | BytesLike | ShelleyAddress | StakingCredential | PubKeyHash | ValidatorHash} StakingAddressLike
  */
 
 /**
@@ -83,9 +82,9 @@ export class StakingAddress {
 
     /**
      * @param {BytesLike} bytes
-     * @param {Option<Context>} context
+     * @param {Context | undefined} context
      */
-    constructor(bytes, context = None) {
+    constructor(bytes, context = undefined) {
         this.bytes = toBytes(bytes)
 
         if (this.bytes.length != 29) {
@@ -113,9 +112,11 @@ export class StakingAddress {
                 ? StakingAddress.fromPubKeyHash(isMainnet, arg)
                 : arg instanceof ValidatorHash
                   ? StakingAddress.fromStakingValidatorHash(isMainnet, arg)
-                  : arg instanceof Address
-                    ? StakingAddress.fromAddress(arg)
-                    : new StakingAddress(arg)
+                  : typeof arg == "string"
+                    ? new StakingAddress(arg)
+                    : "kind" in arg && arg.kind == "Address"
+                      ? StakingAddress.fromAddress(arg)
+                      : new StakingAddress(arg)
     }
 
     /**
@@ -131,7 +132,7 @@ export class StakingAddress {
      * Convert a regular `Address` into a `StakingAddress`.
      * Throws an error if the Address doesn't have a staking credential.
      * @template C
-     * @param {Address<any, C>} addr
+     * @param {ShelleyAddress<any, C>} addr
      * @returns {StakingAddress<C>}
      */
     static fromAddress(addr) {
@@ -332,7 +333,7 @@ export class StakingAddress {
      * @returns {boolean}
      */
     isForMainnet() {
-        return new Address(this.bytes).isForMainnet()
+        return makeAddress(this.bytes).isForMainnet()
     }
 
     /**
@@ -390,7 +391,7 @@ export class StakingAddress {
  * @template [Context=unknown]
  * @overload
  * @param {{
- *   address: Address<any, Context>
+ *   address: ShelleyAddress<any, Context>
  * }} args
  * @returns {StakingAddressI<Context>}
  */
@@ -471,7 +472,7 @@ export class StakingAddress {
  *   bytes: BytesLike
  *   context?: CStaking
  * } | {
- *   address: Address<any, CStaking>
+ *   address: ShelleyAddress<any, CStaking>
  * } | {
  *   credential: StakingCredential<CStaking>
  *   isMainnet: boolean
@@ -502,10 +503,12 @@ export function makeStakingAddress(args) {
             throw new Error("Address doesn't have a staking part")
         }
 
-        return makeStakingAddress({
-            isMainnet: args.address.isForMainnet(),
-            hash
-        })
+        return /** @type {any} */ (
+            makeStakingAddress({
+                isMainnet: args.address.isForMainnet(),
+                hash
+            })
+        )
     } else if ("credential" in args) {
         return makeStakingAddress({
             isMainnet: args.isMainnet,
@@ -549,7 +552,7 @@ export function makeStakingAddress(args) {
             throw new Error("invalid StakingAddress prefix")
         }
 
-        return result
+        return /** @type {any} */ (result)
     } else if ("cbor" in args) {
         return decodeStakingAddressCbor(args.cbor, args.context)
     } else if ("uplcData" in args) {
@@ -562,10 +565,10 @@ export function makeStakingAddress(args) {
 /**
  * @template [Context=unknown]
  * @param {BytesLike} bytes
- * @param {Option<Context>} context
+ * @param {Context | undefined} context
  * @returns {StakingAddressI<Context>}
  */
-export function decodeStakingAddressCbor(bytes, context = None) {
+export function decodeStakingAddressCbor(bytes, context = undefined) {
     return new StakingAddress(decodeBytes(bytes), context)
 }
 

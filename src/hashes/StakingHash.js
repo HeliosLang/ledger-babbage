@@ -1,17 +1,14 @@
 import { decodeTagged, encodeInt, encodeTuple } from "@helios-lang/cbor"
-import { ByteStream } from "@helios-lang/codec-utils"
-import { None, isSome } from "@helios-lang/type-utils"
+import { makeByteStream } from "@helios-lang/codec-utils"
 import { ConstrData } from "@helios-lang/uplc"
 import { PubKeyHash } from "./PubKeyHash.js"
 import { StakingValidatorHash } from "./StakingValidatorHash.js"
 import { ValidatorHash } from "./ValidatorHash.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
- * @typedef {import("@helios-lang/uplc").ConstrDataI} ConstrDataI
- * @typedef {import("@helios-lang/uplc").UplcData} UplcData
- * @typedef {import("../hashes/index.js").PubKeyHashLike} PubKeyHashLike
- * @typedef {import("../hashes/index.js").StakingValidatorHashLike} StakingValidatorHashLike
+ * @import { BytesLike } from "@helios-lang/codec-utils"
+ * @import { ConstrDataI, UplcData } from "@helios-lang/uplc"
+ * @import { PubKeyHashLike, StakingValidatorHashLike } from "../hashes/index.js"
  */
 
 /**
@@ -41,8 +38,8 @@ import { ValidatorHash } from "./ValidatorHash.js"
  * @prop {Context} context
  * @prop {"StakingHash"} kind
  * @prop {StakingPubKeyOrValidator<Context, PubKeyHash, StakingValidatorHash<Context>>} hash
- * @prop {StakingPubKeyOrValidator<Context, PubKeyHash, typeof None>} pubKeyHash
- * @prop {StakingPubKeyOrValidator<Context, typeof None, StakingValidatorHash<Context>>} stakingValidatorHash
+ * @prop {StakingPubKeyOrValidator<Context, PubKeyHash, null>} pubKeyHash
+ * @prop {StakingPubKeyOrValidator<Context, null, StakingValidatorHash<Context>>} stakingValidatorHash
  * @prop {() => number[]} toCbor
  * @prop {() => ConstrDataI} toUplcData
  */
@@ -68,12 +65,12 @@ export class StakingHash {
 
     /**
      * @param {{hash: PubKeyHash} | {hash: StakingValidatorHash<C>}} props
-     * @param {Option<C>} context
+     * @param {C | undefined} context
      */
-    constructor(props, context = None) {
+    constructor(props, context = undefined) {
         this.props = /** @type {any} */ (props)
 
-        if (isSome(context)) {
+        if (context !== undefined) {
             this.context = context
         }
     }
@@ -105,7 +102,7 @@ export class StakingHash {
                 {
                     hash: StakingValidatorHash.new(hash)
                 },
-                hash instanceof StakingValidatorHash ? hash.context : None
+                hash instanceof StakingValidatorHash ? hash.context : undefined
             )
         )
     }
@@ -138,7 +135,7 @@ export class StakingHash {
      * @returns {StakingHash}
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         const [tag, decodeItem] = decodeTagged(stream)
 
@@ -159,7 +156,7 @@ export class StakingHash {
      * @returns {StakingHash}
      */
     static fromUplcData(data) {
-        ConstrData.assert(data, None, 1)
+        ConstrData.assert(data, undefined, 1)
 
         switch (data.tag) {
             case 0:
@@ -199,17 +196,21 @@ export class StakingHash {
     }
 
     /**
-     * @type {StakingPubKeyOrValidator<C, PubKeyHash, typeof None>}
+     * @type {StakingPubKeyOrValidator<C, PubKeyHash, null>}
      */
     get pubKeyHash() {
-        return /** @type {any} */ (this.isPubKey() ? this.props.hash : None)
+        return /** @type {any} */ (
+            this.isPubKey() ? this.props.hash : undefined
+        )
     }
 
     /**
-     * @type {StakingPubKeyOrValidator<C, typeof None, StakingValidatorHash<C>>}
+     * @type {StakingPubKeyOrValidator<C, null, StakingValidatorHash<C>>}
      */
     get stakingValidatorHash() {
-        return /** @type {any} */ (this.isValidator() ? this.props.hash : None)
+        return /** @type {any} */ (
+            this.isValidator() ? this.props.hash : undefined
+        )
     }
 
     /**
@@ -313,7 +314,7 @@ export function makeStakingHash(args) {
                     {
                         hash: StakingValidatorHash.new(h)
                     },
-                    h instanceof StakingValidatorHash ? h.context : None
+                    h instanceof StakingValidatorHash ? h.context : undefined
                 )
             )
         } else {
@@ -323,7 +324,7 @@ export function makeStakingHash(args) {
         return new StakingHash({ hash: PubKeyHash.dummy(args.dummy) })
     } else if ("cbor" in args) {
         return decodeStakingHashCbor(args.cbor, args.context)
-    } else if ("uplcData") {
+    } else if ("uplcData" in args) {
         return decodeStakingHashUplcData(args.uplcData, args.context)
     } else {
         throw new Error("invalid makeStakingHash() arguments")
@@ -333,11 +334,11 @@ export function makeStakingHash(args) {
 /**
  * @template [Context=unknown]
  * @param {BytesLike} bytes
- * @param {Option<Context>} context
+ * @param {Context | undefined} context
  * @returns {StakingHashI<Context>}
  */
-export function decodeStakingHashCbor(bytes, context = None) {
-    const stream = ByteStream.from(bytes)
+export function decodeStakingHashCbor(bytes, context = undefined) {
+    const stream = makeByteStream({ bytes })
 
     const [tag, decodeItem] = decodeTagged(stream)
 
@@ -361,11 +362,11 @@ export function decodeStakingHashCbor(bytes, context = None) {
 /**
  * @template [Context=unknown]
  * @param {UplcData} data
- * @param {Option<Context>} context
+ * @param {Context | undefined} context
  * @returns {StakingHashI<Context>}
  */
-export function decodeStakingHashUplcData(data, context = None) {
-    ConstrData.assert(data, None, 1)
+export function decodeStakingHashUplcData(data, context = undefined) {
+    ConstrData.assert(data, undefined, 1)
 
     switch (data.tag) {
         case 0:
@@ -376,9 +377,11 @@ export function decodeStakingHashUplcData(data, context = None) {
             )
         case 1: {
             const v = StakingValidatorHash.fromUplcData(data.fields[0])
-            return /** @type {any} */ makeStakingHash({
-                hash: new StakingValidatorHash(v.bytes, context)
-            })
+            return /** @type {any} */ (
+                makeStakingHash({
+                    hash: new StakingValidatorHash(v.bytes, context)
+                })
+            )
         }
         default:
             throw new Error(

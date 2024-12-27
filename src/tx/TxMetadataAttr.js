@@ -11,10 +11,10 @@ import {
     isMap,
     isString
 } from "@helios-lang/cbor"
-import { ByteStream } from "@helios-lang/codec-utils"
+import { makeByteStream } from "@helios-lang/codec-utils"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
+ * @import { BytesLike } from "@helios-lang/codec-utils"
  */
 
 /**
@@ -31,7 +31,7 @@ import { ByteStream } from "@helios-lang/codec-utils"
  * @returns {TxMetadataAttr}
  */
 export function decodeMetadataAttr(bytes) {
-    const stream = ByteStream.from(bytes)
+    const stream = makeByteStream({ bytes })
 
     if (isString(stream)) {
         return decodeString(stream)

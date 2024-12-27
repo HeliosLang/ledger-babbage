@@ -10,8 +10,7 @@ import {
     encodeString,
     encodeTuple
 } from "@helios-lang/cbor"
-import { ByteStream } from "@helios-lang/codec-utils"
-import { None } from "@helios-lang/type-utils"
+import { makeByteStream } from "@helios-lang/codec-utils"
 
 /**
  * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
@@ -76,10 +75,10 @@ export class PoolRelay {
 
     /**
      * @param {string} record
-     * @param {Option<number>} port
+     * @param {number | undefined} port
      * @returns {PoolRelay<"SingleName">}
      */
-    static SingleName(record, port = None) {
+    static SingleName(record, port = undefined) {
         return new PoolRelay("SingleName", {
             record: record,
             port: port ? port : undefined
@@ -99,7 +98,7 @@ export class PoolRelay {
      * @returns {PoolRelay}
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         const [tag, decodeItem] = decodeTagged(stream)
 
@@ -127,7 +126,10 @@ export class PoolRelay {
                 )
                 const record = decodeItem(decodeString)
 
-                return PoolRelay.SingleName(record, port ? Number(port) : None)
+                return PoolRelay.SingleName(
+                    record,
+                    port ? Number(port) : undefined
+                )
             }
             case 2: {
                 const record = decodeItem(decodeString)
@@ -167,10 +169,12 @@ export class PoolRelay {
      */
 
     /**
-     * @type {T extends PoolRelayKindWithIpv4 ? Option<number[]> : T extends Exclude<PoolRelayKind, PoolRelayKindWithIpv4> ? never : Option<number[]>}
+     * @type {T extends PoolRelayKindWithIpv4 ? (number[] | undefined) : T extends Exclude<PoolRelayKind, PoolRelayKindWithIpv4> ? never : (number[] | undefined)}
      */
     get ipv4() {
-        return /** @type {any} */ (this.isSingleAddr() ? this.props.ipv4 : None)
+        return /** @type {any} */ (
+            this.isSingleAddr() ? this.props.ipv4 : undefined
+        )
     }
 
     /**
@@ -178,10 +182,12 @@ export class PoolRelay {
      */
 
     /**
-     * @type {T extends PoolRelayKindWithIpv6 ? Option<number[]> : T extends Exclude<PoolRelayKind, PoolRelayKindWithIpv6> ? never : Option<number[]>}
+     * @type {T extends PoolRelayKindWithIpv6 ? (number[] | undefined) : T extends Exclude<PoolRelayKind, PoolRelayKindWithIpv6> ? never : (number[] | undefined)}
      */
     get ipv6() {
-        return /** @type {any} */ (this.isSingleAddr() ? this.props.ipv6 : None)
+        return /** @type {any} */ (
+            this.isSingleAddr() ? this.props.ipv6 : undefined
+        )
     }
 
     /**
@@ -189,7 +195,7 @@ export class PoolRelay {
      */
 
     /**
-     * @type {T extends PoolRelayKindWithPort ? Option<number> : T extends Exclude<PoolRelayKind, PoolRelayKindWithPort> ? never : Option<number>}
+     * @type {T extends PoolRelayKindWithPort ? (number | undefined) : T extends Exclude<PoolRelayKind, PoolRelayKindWithPort> ? never : (number | undefined)}
      */
     get port() {
         return /** @type {any} */ (
@@ -197,7 +203,7 @@ export class PoolRelay {
                 ? this.props.port
                 : this.isSingleName()
                   ? this.props.port
-                  : None
+                  : undefined
         )
     }
 
@@ -206,7 +212,7 @@ export class PoolRelay {
      */
 
     /**
-     * @type {T extends PoolRelayKindWithRecord ? string : T extends Exclude<PoolRelayKind, PoolRelayKindWithRecord> ? never : Option<string>}
+     * @type {T extends PoolRelayKindWithRecord ? string : T extends Exclude<PoolRelayKind, PoolRelayKindWithRecord> ? never : (string | undefined)}
      */
     get record() {
         return /** @type {any} */ (
@@ -214,7 +220,7 @@ export class PoolRelay {
                 ? this.props.record
                 : this.isMultiName()
                   ? this.props.record
-                  : None
+                  : undefined
         )
     }
 

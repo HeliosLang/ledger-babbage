@@ -11,7 +11,7 @@ import {
 } from "@helios-lang/cbor"
 import { bytesToHex, compareBytes } from "@helios-lang/codec-utils"
 import { blake2b } from "@helios-lang/crypto"
-import { None, isLeft } from "@helios-lang/type-utils"
+import { isLeft } from "@helios-lang/type-utils"
 import { ListData, UplcRuntimeError } from "@helios-lang/uplc"
 import { Value } from "../money/index.js"
 import { NetworkParamsHelper } from "../params/index.js"
@@ -59,14 +59,14 @@ export class Tx {
 
     /**
      * @readonly
-     * @type {Option<TxMetadata>}
+     * @type {TxMetadata | undefined}
      */
     metadata
 
     /**
      * Access this through `hasValidationError()`
      * @private
-     * @type {Option<string> | false}
+     * @type {string | false | undefined}
      */
     validationError
 
@@ -77,14 +77,14 @@ export class Tx {
      * @param {TxBody} body
      * @param {TxWitnesses} witnesses
      * @param {boolean} valid - false whilst some signatures are still missing
-     * @param {Option<TxMetadata>} metadata
+     * @param {TxMetadata | undefined} metadata
      */
-    constructor(body, witnesses, valid, metadata = None) {
+    constructor(body, witnesses, valid, metadata = undefined) {
         this.body = body
         this.witnesses = witnesses
         this.valid = valid
         this.metadata = metadata
-        this.validationError = None
+        this.validationError = undefined
 
         Object.defineProperty(this, "validationError", {
             enumerable: false,
@@ -100,8 +100,21 @@ export class Tx {
      */
     static fromCbor(bytes) {
         const [body, witnesses, valid, metadata] = decodeTuple(bytes, [
-            TxBody,
-            TxWitnesses,
+            (bytes) => {
+                const body = TxBody.fromCbor(bytes)
+
+                console.log(
+                    JSON.stringify(body.dump(), undefined, 4), 
+                    bytesToHex(body.toCbor())
+                )
+                return body
+            },
+            (bytes) => {
+                console.log(bytesToHex(bytes.peekRemaining()))
+                const witnesses = TxWitnesses.fromCbor(bytes)
+
+                return witnesses
+            },
             decodeBool,
             (s) => decodeNullOption(s, TxMetadata)
         ])
@@ -211,7 +224,7 @@ export class Tx {
      * @returns {Tx}
      */
     clearMetadata() {
-        return new Tx(this.body, this.witnesses, this.valid, None)
+        return new Tx(this.body, this.witnesses, this.valid, undefined)
     }
 
     /**
@@ -255,7 +268,7 @@ export class Tx {
      * - `null` if the transaction hasn't been validated yet
      * - `false` when the transaction is valid
      * - a `string` with the error message if any validation check failed
-     * @returns {Option<string> | false}
+     * @returns {string | false | undefined}
      */
     get hasValidationError() {
         return this.validationError
@@ -436,10 +449,16 @@ export class Tx {
 
         // check the input and the collateral utxos
         this.body.inputs.concat(this.body.collateral).forEach((utxo) => {
-            const pkh = utxo.output.address.pubKeyHash
+            const address = utxo.output.address
+
+            if (address.era == "Byron") {
+                throw new Error("not yet implemented")
+            }
+
+            const pkh = address.pubKeyHash
             if (pkh && !includedSigners.has(pkh.toHex())) {
                 throw new Error(
-                    `signature for input at ${utxo.output.address.toBech32()} missing`
+                    `signature for input at ${address.toBech32()} missing`
                 )
             }
         })
@@ -680,7 +699,7 @@ export class Tx {
     /**
      * @private
      * @param {NetworkParams} params
-     * @param {Option<UplcLoggingI>} logOptions
+     * @param {UplcLoggingI | undefined} logOptions
      */
     validateRedeemersExBudget(params, logOptions) {
         const txInfo = this.body.toTxInfo(

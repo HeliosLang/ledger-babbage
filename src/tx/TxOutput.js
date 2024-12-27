@@ -12,8 +12,7 @@ import {
     isObject,
     isTuple
 } from "@helios-lang/cbor"
-import { ByteStream, bytesToHex } from "@helios-lang/codec-utils"
-import { None } from "@helios-lang/type-utils"
+import { bytesToHex, makeByteStream } from "@helios-lang/codec-utils"
 import {
     ByteArrayData,
     ConstrData,
@@ -24,17 +23,19 @@ import {
 import { DatumHash } from "../hashes/index.js"
 import { Value } from "../money/index.js"
 import { NetworkParamsHelper } from "../params/index.js"
-import { Address } from "./Address.js"
+import {
+    convertUplcDataToAddress,
+    decodeShelleyAddress,
+    makeAddress
+} from "./ShelleyAddress.js"
 import { TxOutputDatum } from "./TxOutputDatum.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
- * @typedef {import("@helios-lang/uplc").UplcData} UplcData
- * @typedef {import("@helios-lang/uplc").UplcProgramV1I} UplcProgramV1I
- * @typedef {import("@helios-lang/uplc").UplcProgramV2I} UplcProgramV2I
+ * @import { BytesLike } from "@helios-lang/codec-utils"
+ * @import { UplcData, UplcProgramV1I, UplcProgramV2I } from "@helios-lang/uplc"
+ * @import { Address, ShelleyAddressLike } from "./ShelleyAddress.js"
  * @typedef {import("../money/index.js").ValueLike} ValueLike
  * @typedef {import("../params/index.js").NetworkParams} NetworkParams
- * @typedef {import("./Address.js").AddressLike} AddressLike
  * @typedef {import("./TxOutputDatum.js").TxOutputDatumKind} TxOutputDatumKind
 
 /**
@@ -72,12 +73,12 @@ export class TxOutput {
 
     /**
      * Mutation is handy when correctin the quantity of lovelace in a utxo
-     * @type {Option<TxOutputDatum<TxOutputDatumKind>>}
+     * @type {TxOutputDatum<TxOutputDatumKind> | undefined}
      */
     datum
 
     /**
-     * @type {Option<UplcProgramV1I | UplcProgramV2I>}
+     * @type {UplcProgramV1I | UplcProgramV2I | undefined}
      */
     refScript
 
@@ -88,20 +89,25 @@ export class TxOutput {
 
     /**
      * Constructs a `TxOutput` instance using an `Address`, a `Value`, an optional `Datum`, and optional `UplcProgram` reference script.
-     * @param {Address<CSpending, CStaking> | AddressLike} address
+     * @param {Address<CSpending, CStaking> | ShelleyAddressLike} address
      * @param {ValueLike} value
-     * @param {Option<TxOutputDatum>} datum
-     * @param {Option<UplcProgramV1I | UplcProgramV2I>} refScript - plutus v2 script for now
+     * @param {TxOutputDatum | undefined} datum
+     * @param {UplcProgramV1I | UplcProgramV2I | undefined} refScript - plutus v2 script for now
      */
     constructor(
         address,
         value,
-        datum = None,
-        refScript = None,
+        datum = undefined,
+        refScript = undefined,
         encodingConfig = DEFAULT_TX_OUTPUT_ENCODING_CONFIG
     ) {
-        this.address =
-            address instanceof Address ? address : Address.new(address)
+        this.address = /** @type {any} */ (
+            typeof address != "string" &&
+            "kind" in address &&
+            address.kind == "Address"
+                ? address
+                : makeAddress(address)
+        )
         this.value = Value.new(value)
         this.datum = datum
         this.refScript = refScript
@@ -113,7 +119,7 @@ export class TxOutput {
      * @returns {TxOutput}
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         if (isObject(bytes)) {
             const {
@@ -122,7 +128,7 @@ export class TxOutput {
                 2: datum,
                 3: refScriptBytes
             } = decodeObjectIKey(stream, {
-                0: Address,
+                0: decodeShelleyAddress,
                 1: Value,
                 2: TxOutputDatum,
                 3: (stream) => {
@@ -139,7 +145,7 @@ export class TxOutput {
             }
 
             /**
-             * @type {Option<UplcProgramV1I | UplcProgramV2I>}
+             * @type {UplcProgramV1I | UplcProgramV2I | undefined}
              */
             const refScript = (() => {
                 if (refScriptBytes) {
@@ -159,7 +165,7 @@ export class TxOutput {
                             )
                     }
                 } else {
-                    return None
+                    return undefined
                 }
             })()
 
@@ -169,14 +175,14 @@ export class TxOutput {
         } else if (isTuple(bytes)) {
             const [address, value, datumHash] = decodeTuple(
                 bytes,
-                [Address, Value],
+                [decodeShelleyAddress, Value],
                 [DatumHash]
             )
 
             return new TxOutput(
                 address,
                 value,
-                datumHash ? TxOutputDatum.Hash(datumHash) : None
+                datumHash ? TxOutputDatum.Hash(datumHash) : undefined
             )
         } else {
             throw new Error("unexpected TxOutput encoding")
@@ -197,10 +203,10 @@ export class TxOutput {
         ConstrData.assert(data, 0, 4)
 
         return new TxOutput(
-            Address.fromUplcData(isMainnet, data.fields[0]),
+            convertUplcDataToAddress(isMainnet, data.fields[0]),
             Value.fromUplcData(data.fields[1]),
             TxOutputDatum.fromUplcData(data.fields[2]),
-            None, // The refScript hash isn't very useful
+            undefined, // The refScript hash isn't very useful
             encodingConfig
         )
     }
@@ -210,7 +216,7 @@ export class TxOutput {
      * @returns {boolean}
      */
     static isValidCbor(bytes) {
-        const stream = ByteStream.from(bytes).copy()
+        const stream = makeByteStream({ bytes }).copy()
 
         try {
             TxOutput.fromCbor(stream)
@@ -224,14 +230,22 @@ export class TxOutput {
      * @type {CSpending}
      */
     get spendingContext() {
-        return this.address.spendingContext
+        if (this.address.era == "Byron") {
+            return /** @type {any} */ (undefined)
+        } else {
+            return this.address.spendingContext
+        }
     }
 
     /**
      * @type {CStaking}
      */
     get stakingContext() {
-        return this.address.stakingContext
+        if (this.address.era == "Byron") {
+            return /** @type {any} */ (undefined)
+        } else {
+            return this.address.stakingContext
+        }
     }
 
     /**
@@ -240,7 +254,7 @@ export class TxOutput {
      */
     copy() {
         return new TxOutput(
-            this.address.copy(),
+            this.address.era == "Byron" ? this.address : this.address.copy(),
             this.value.copy(),
             this.datum?.copy(),
             this.refScript,
@@ -253,7 +267,10 @@ export class TxOutput {
      */
     dump() {
         return {
-            address: this.address.dump(),
+            address:
+                this.address.era == "Byron"
+                    ? this.address.toBase58()
+                    : this.address.dump(),
             value: this.value.dump(),
             datum: this.datum ? this.datum.dump() : null,
             refScript: this.refScript
@@ -318,12 +335,20 @@ export class TxOutput {
      * @returns {ConstrData}
      */
     toUplcData() {
+        const address = this.address
+
+        if (address.era == "Byron") {
+            throw new Error("not yet implemented")
+        }
+
         return new ConstrData(0, [
-            this.address.toUplcData(),
+            address.toUplcData(),
             this.value.toUplcData(),
             this.datum ? this.datum.toUplcData() : new ConstrData(0, []),
             encodeOptionData(
-                this.refScript ? new ByteArrayData(this.refScript.hash()) : None
+                this.refScript
+                    ? new ByteArrayData(this.refScript.hash())
+                    : undefined
             )
         ])
     }
@@ -334,6 +359,7 @@ export class TxOutput {
      * @returns {bigint}
      */
     calcDeposit(params) {
+        // TODO: also iterative calculation
         const helper = new NetworkParamsHelper(params)
 
         const lovelacePerByte = helper.lovelacePerUTXOByte
@@ -349,9 +375,9 @@ export class TxOutput {
      *
      * Optionally an update function can be specified that allows mutating the datum of the `TxOutput` to account for an increase of the lovelace quantity contained in the value.
      * @param {NetworkParams} params
-     * @param {Option<(output: TxOutput) => void>} updater
+     * @param {((output: TxOutput) => void) | undefined} updater
      */
-    correctLovelace(params, updater = null) {
+    correctLovelace(params, updater = undefined) {
         let minLovelace = this.calcDeposit(params)
 
         while (this.value.lovelace < minLovelace) {

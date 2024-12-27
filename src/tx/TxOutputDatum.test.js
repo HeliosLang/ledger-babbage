@@ -1,7 +1,6 @@
 import { deepEqual, strictEqual, throws } from "node:assert"
 import { describe, it } from "node:test"
 import { dummyBytes } from "@helios-lang/codec-utils"
-import { None } from "@helios-lang/type-utils"
 import { ByteArrayData, ConstrData, IntData } from "@helios-lang/uplc"
 import { TxOutputDatum } from "./TxOutputDatum.js"
 
@@ -10,7 +9,7 @@ describe(TxOutputDatum.name, () => {
         it("handles None correctly", () => {
             const datum = TxOutputDatum.fromUplcData(new ConstrData(0, []))
 
-            strictEqual(datum, None)
+            strictEqual(datum, undefined)
         })
 
         it("handles Hash correctly", () => {

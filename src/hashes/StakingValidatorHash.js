@@ -1,12 +1,11 @@
 import { decodeBytes } from "@helios-lang/cbor"
 import { compareBytes, dummyBytes, equalsBytes } from "@helios-lang/codec-utils"
-import { None, isSome } from "@helios-lang/type-utils"
 import { ByteArrayData, decodeUplcData } from "@helios-lang/uplc"
 import { ScriptHash } from "./ScriptHash.js"
 
 /**
- * @typedef {import("@helios-lang/codec-utils").BytesLike} BytesLike
- * @typedef {import("@helios-lang/uplc").UplcData} UplcData
+ * @import { BytesLike } from "@helios-lang/codec-utils"
+ * @import { UplcData } from "@helios-lang/uplc"
  * @typedef {import("./Hash.js").Hash} Hash
  */
 
@@ -26,9 +25,9 @@ import { ScriptHash } from "./ScriptHash.js"
 export class StakingValidatorHash extends ScriptHash {
     /**
      * @param {BytesLike} bytes
-     * @param {Option<C>} context
+     * @param {C | undefined} context
      */
-    constructor(bytes, context = None) {
+    constructor(bytes, context = undefined) {
         super(bytes, context)
 
         if (this.bytes.length != 28) {

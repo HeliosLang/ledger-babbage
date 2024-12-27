@@ -5,7 +5,7 @@ import {
     encodeTuple
 } from "@helios-lang/cbor"
 import { bytesToHex, toInt } from "@helios-lang/codec-utils"
-import { expectSome } from "@helios-lang/type-utils"
+import { expectDefined } from "@helios-lang/type-utils"
 import {
     UplcDataValue,
     decodeCost,
@@ -167,6 +167,7 @@ export class TxRedeemer {
      * @returns {TxRedeemer}
      */
     static fromCbor(bytes) {
+        console.log("decoding redeemer")
         const [tag, decodeItem] = decodeTagged(bytes)
 
         switch (tag) {
@@ -380,16 +381,22 @@ export class TxRedeemer {
      */
     getRedeemerDetails(tx, txInfo = undefined) {
         if (this.isSpending()) {
-            const utxo = expectSome(tx.body.inputs[this.index])
+            const utxo = expectDefined(tx.body.inputs[this.index])
 
-            const datumData = expectSome(utxo.datum?.data)
+            const datumData = expectDefined(utxo.datum?.data)
             const summary = `input @${this.index}`
+            const address = utxo.address
+
+            if (address.era == "Byron") {
+                throw new Error("Byron address not supported")
+            }
+
             return {
                 summary,
                 description: `spending tx.inputs[${this.index}] (from UTxO ${utxo.id.toString()})`,
-                script: expectSome(
+                script: expectDefined(
                     tx.witnesses.findUplcProgram(
-                        expectSome(utxo.address.validatorHash)
+                        expectDefined(address.validatorHash)
                     )
                 ),
                 args: !txInfo
@@ -404,12 +411,12 @@ export class TxRedeemer {
                       ].map((a) => new UplcDataValue(a))
             }
         } else if (this.isMinting()) {
-            const mph = expectSome(tx.body.minted.getPolicies()[this.index])
+            const mph = expectDefined(tx.body.minted.getPolicies()[this.index])
             const summary = `mint @${this.index}`
             return {
                 summary,
                 description: `minting policy ${this.index} (${mph.toHex()})`,
-                script: expectSome(tx.witnesses.findUplcProgram(mph)),
+                script: expectDefined(tx.witnesses.findUplcProgram(mph)),
                 args: !txInfo
                     ? undefined
                     : [
@@ -421,16 +428,16 @@ export class TxRedeemer {
                       ].map((a) => new UplcDataValue(a))
             }
         } else if (this.isRewarding()) {
-            const credential = expectSome(
+            const credential = expectDefined(
                 tx.body.withdrawals[this.index]
             )[0].toCredential()
             const stakingHash = credential.hash
-            const svh = expectSome(stakingHash.stakingValidatorHash)
+            const svh = expectDefined(stakingHash.stakingValidatorHash)
             const summary = `rewards @${this.index}`
             return {
                 summary,
                 description: `withdrawing ${summary} (${svh.toHex()})`,
-                script: expectSome(tx.witnesses.findUplcProgram(svh)),
+                script: expectDefined(tx.witnesses.findUplcProgram(svh)),
                 args: !txInfo
                     ? undefined
                     : [
@@ -442,16 +449,16 @@ export class TxRedeemer {
                       ].map((a) => new UplcDataValue(a))
             }
         } else if (this.isCertifying()) {
-            const dcert = expectSome(tx.body.dcerts[this.index])
+            const dcert = expectDefined(tx.body.dcerts[this.index])
 
             const summary = `${dcert.kind} @${this.index}`
-            const stakingHash = expectSome(dcert.credential).hash
-            const svh = expectSome(stakingHash.stakingValidatorHash)
+            const stakingHash = expectDefined(dcert.credential).hash
+            const svh = expectDefined(stakingHash.stakingValidatorHash)
 
             return {
                 summary,
                 description: `certifying ${summary}`,
-                script: expectSome(tx.witnesses.findUplcProgram(svh)),
+                script: expectDefined(tx.witnesses.findUplcProgram(svh)),
                 args: !txInfo
                     ? undefined
                     : [

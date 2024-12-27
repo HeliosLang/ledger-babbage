@@ -5,7 +5,7 @@ import {
     encodeTuple,
     isTuple
 } from "@helios-lang/cbor"
-import { ByteStream } from "@helios-lang/codec-utils"
+import { makeByteStream } from "@helios-lang/codec-utils"
 import {
     ByteArrayData,
     IntData,
@@ -123,7 +123,7 @@ export class Value {
      * @returns {Value}
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         if (isTuple(bytes)) {
             const [lovelace, assets] = decodeTuple(stream, [decodeInt, Assets])

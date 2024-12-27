@@ -10,7 +10,7 @@ import {
     decodeList,
     decodeNullOption
 } from "@helios-lang/cbor"
-import { ByteStream } from "@helios-lang/codec-utils"
+import { makeByteStream } from "@helios-lang/codec-utils"
 import { PubKeyHash } from "../hashes/index.js"
 import { StakingAddress } from "../tx/StakingAddress.js"
 import { PoolMetadata } from "./PoolMetadata.js"
@@ -85,7 +85,7 @@ export class PoolParameters {
 
     /**
      * @readonly
-     * @type {Option<PoolMetadata>}
+     * @type {PoolMetadata | undefined}
      */
     metadata
 
@@ -118,7 +118,7 @@ export class PoolParameters {
      * @param {BytesLike} bytes
      */
     static fromCbor(bytes) {
-        const stream = ByteStream.from(bytes)
+        const stream = makeByteStream({ bytes })
 
         const [
             id,

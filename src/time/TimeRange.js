@@ -1,4 +1,3 @@
-import { None } from "@helios-lang/type-utils"
 import {
     ConstrData,
     IntData,
@@ -8,6 +7,8 @@ import {
 import { toTime } from "./Time.js"
 
 /**
+ * @import { UplcData } from "@helios-lang/uplc"
+ * @import { TimeRange } from "src/index.js"
  * @typedef {import("@helios-lang/uplc").UplcData} UplcData
  * @typedef {import("./Time.js").TimeLike} TimeLike
  */
@@ -30,9 +31,36 @@ import { toTime } from "./Time.js"
  */
 
 /**
- * `start` and `end` are stored as numbers so we can use Number.NEGATIVE_INFINITY and Number.POSITIVE_INFINITY
+ * @param {UplcData} data
+ * @returns {TimeRange}
  */
-export class TimeRange {
+export function convertUplcDataToTimeRange(data) {
+    ConstrData.assert(data, 0, 2)
+
+    const [startData, endData] = data.fields
+
+    ConstrData.assert(startData, 0, 2)
+    ConstrData.assert(endData, 0, 2)
+
+    const [startTimeData, includeStartData] = startData.fields
+    const [endTimeData, includeEndData] = endData.fields
+
+    const startTime = decodeTimeRangeTimeData(startTimeData, true)
+    const endTime = decodeTimeRangeTimeData(endTimeData, true)
+    const includeStart = decodeBoolData(includeStartData, true)
+    const includeEnd = decodeBoolData(includeEndData, true)
+
+    return new TimeRangeImpl(startTime, endTime, {
+        excludeStart: !includeStart,
+        excludeEnd: !includeEnd
+    })
+}
+
+/**
+ * `start` and `end` are stored as numbers so we can use Number.NEGATIVE_INFINITY and Number.POSITIVE_INFINITY
+ * @implements {TimeRange}
+ */
+class TimeRangeImpl {
     /**
      * @readonly
      * @type {number}
@@ -69,9 +97,6 @@ export class TimeRange {
         this.includeEnd = !(options.excludeEnd ?? false)
     }
 
-    static always() {
-        return new TimeRange(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-    }
 
     /**
      * @param {TimeRangeLike} arg
@@ -94,38 +119,10 @@ export class TimeRange {
         }
     }
 
-    /**
-     * @param {UplcData} data
-     * @returns {TimeRange}
-     */
-    static fromUplcData(data) {
-        ConstrData.assert(data, 0, 2)
 
-        const [startData, endData] = data.fields
-
-        ConstrData.assert(startData, 0, 2)
-        ConstrData.assert(endData, 0, 2)
-
-        const [startTimeData, includeStartData] = startData.fields
-        const [endTimeData, includeEndData] = endData.fields
-
-        const startTime = decodeTimeRangeTimeData(startTimeData, true)
-        const endTime = decodeTimeRangeTimeData(endTimeData, true)
-        const includeStart = decodeBoolData(includeStartData, true)
-        const includeEnd = decodeBoolData(includeEndData, true)
-
-        return new TimeRange(startTime, endTime, {
-            excludeStart: !includeStart,
-            excludeEnd: !includeEnd
-        })
-    }
-
-    static never() {
-        return new TimeRange(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY)
-    }
 
     /**
-     * @type {Option<number>}
+     * @type {number | undefined}
      */
     get finiteStart() {
         if (
@@ -134,12 +131,12 @@ export class TimeRange {
         ) {
             return this.start
         } else {
-            return None
+            return undefined
         }
     }
 
     /**
-     * @type {Option<number>}
+     * @type {number | undefined}
      */
     get finiteEnd() {
         if (
@@ -148,7 +145,7 @@ export class TimeRange {
         ) {
             return this.end
         } else {
-            return None
+            return undefined
         }
     }
 
@@ -244,3 +241,13 @@ function encodeTimeRangeTimeData(t) {
             return new ConstrData(1, [new IntData(Math.round(t))])
     }
 }
+
+/**
+ * @__PURE__
+ */
+export const ALWAYS = new TimeRange(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+
+/**
+ * @__PURE__
+ */
+export const NEVER = new TimeRange(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY)
